@@ -14,6 +14,7 @@ import {
   Typography,
   Space,
   Card,
+  Tooltip,
 } from 'antd';
 import { ArtCard } from './../../components/ArtCard';
 import { UserSearch, UserValue } from './../../components/UserSearch';
@@ -47,6 +48,7 @@ import {
   LoadingOutlined,
   MinusCircleOutlined,
   PlusOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useTokenList } from '../../contexts/tokenList';
 
@@ -618,6 +620,8 @@ const InfoStep = (props: {
   );
   const [form] = Form.useForm();
 
+  const quantityTooltip = "If you do not add a defined quantity, the stock of your item will be unlimited";
+
   useEffect(() => {
     setRoyalties(
       creators.map(creator => ({
@@ -697,7 +701,12 @@ const InfoStep = (props: {
             />
           </label>
           <label className="action-field">
-            <span className="field-title">Maximum Supply</span>
+            <span className="field-title" style={{ display: "flex" }}>
+                Maximum Supply
+              <Tooltip title={quantityTooltip} color="geekblue">
+                <InfoCircleOutlined style={{ marginLeft: "5px", color: "#32a3ff" }} />
+              </Tooltip>
+            </span>
             <InputNumber
               placeholder="Quantity"
               onChange={(val: number) => {
