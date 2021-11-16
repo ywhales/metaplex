@@ -636,7 +636,7 @@ const InfoStep = (props: {
         </p>
       </Row>
       <Row className="content-action" justify="space-around">
-        <Col>
+        <Col style={{ maxWidth: "50%" }}>
           {props.attributes.image && (
             <ArtCard
               image={image}
@@ -648,7 +648,7 @@ const InfoStep = (props: {
             />
           )}
         </Col>
-        <Col className="section" style={{ minWidth: 300 }}>
+        <Col className="section" style={{ minWidth: 300, maxWidth: "50%" }}>
           <label className="action-field">
             <span className="field-title">Title</span>
             <Input
