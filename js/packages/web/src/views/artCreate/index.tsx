@@ -971,7 +971,7 @@ const RoyaltiesStep = (props: {
       <Row>
         <span
           onClick={() => setShowCreatorsModal(true)}
-          style={{ padding: 10, marginBottom: 10 }}
+          style={{ padding: 10, marginBottom: 10, cursor: "pointer" }}
         >
           <span
             style={{
