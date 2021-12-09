@@ -467,7 +467,7 @@ const UploadStep = (props: {
             <div className="ant-upload-drag-icon">
               <h3 style={{ fontWeight: 700 }}>Upload your creation</h3>
             </div>
-            <p className="ant-upload-text" style={{ color: '#6d6d6d' }}>
+            <p className="ant-upload-text" style={{ color: 'white' }}>
               Drag and drop, or click to browse
             </p>
           </Dragger>
@@ -558,7 +558,7 @@ const UploadStep = (props: {
   );
 };
 
-interface Royalty {
+export interface Royalty {
   creatorKey: string;
   amount: number;
 }
@@ -807,14 +807,38 @@ const InfoStep = (props: {
 const RoyaltiesSplitter = (props: {
   creators: Array<UserValue>;
   royalties: Array<Royalty>;
+  setCreators: Function;
   setRoyalties: Function;
   isShowErrors?: boolean;
 }) => {
+  const [creators, setCreators] = useState([...props.creators]);
+  const [royalties, setRoyalties] = useState([...props.royalties]);
+
+  useEffect(() => {
+    const tempCreators = props.creators.filter((creator, index, self) =>
+      index === self.findIndex((t) => (
+        t.key === creator.key
+      ))
+    );
+    const tempRoyalties = props.royalties.filter((creator, index, self) =>
+      index === self.findIndex((t) => (
+        t.creatorKey === creator.creatorKey
+      ))
+    );
+    setRoyalties(
+      tempRoyalties.map(royalty => ({
+        creatorKey: royalty.creatorKey,
+        amount: Math.trunc(100 / tempRoyalties.length),
+      })),
+    )
+    setCreators(tempCreators);
+  }, [props.creators, props.royalties])
+  
   return (
     <Col>
       <Row gutter={[0, 24]}>
-        {props.creators.map((creator, idx) => {
-          const royalty = props.royalties.find(
+        {creators.map((creator, idx) => {
+          const royalty = royalties.find(
             royalty => royalty.creatorKey === creator.key,
           );
           if (!royalty) return null;
@@ -822,8 +846,8 @@ const RoyaltiesSplitter = (props: {
           const amt = royalty.amount;
 
           const handleChangeShare = (newAmt: number) => {
-            props.setRoyalties(
-              props.royalties.map(_royalty => {
+            setRoyalties(
+              royalties.map(_royalty => {
                 return {
                   ..._royalty,
                   amount:
@@ -859,6 +883,14 @@ const RoyaltiesSplitter = (props: {
                 <Col span={4} style={{ paddingLeft: 12 }}>
                   <Slider value={amt} onChange={handleChangeShare} />
                 </Col>
+                {idx >= 1 && (
+                  <Col span={1} style={{ paddingLeft: 12 }}>
+                    <MinusCircleOutlined onClick={() => {
+                      props.setCreators(creators.filter(oldCreator => oldCreator.key !== creator.key));
+                      props.setRoyalties(royalties.filter(oldRoyalty => oldRoyalty.creatorKey !== creator.key));
+                    }} />
+                  </Col>
+                )}
                 {props.isShowErrors && amt === 0 && (
                   <Col style={{ paddingLeft: 12 }}>
                     <Text type="danger">
@@ -900,7 +932,7 @@ const RoyaltiesStep = (props: {
         },
       ]);
     }
-  }, [connected, setCreators]);
+  }, [connected]);
 
   useEffect(() => {
     setRoyalties(
@@ -962,6 +994,7 @@ const RoyaltiesStep = (props: {
             <RoyaltiesSplitter
               creators={[...fixedCreators, ...creators]}
               royalties={royalties}
+              setCreators={setCreators}
               setRoyalties={setRoyalties}
               isShowErrors={isShowErrors}
             />
@@ -1002,7 +1035,7 @@ const RoyaltiesStep = (props: {
         >
           <label className="action-field" style={{ width: '100%' }}>
             <span className="field-title">Creators</span>
-            <UserSearch setCreators={setCreators} />
+            <UserSearch royalties={royalties} setShowCreatorsModal={setShowCreatorsModal} setCreators={setCreators} />
           </label>
         </MetaplexModal>
       </Row>
