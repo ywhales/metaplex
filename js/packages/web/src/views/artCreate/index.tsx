@@ -619,6 +619,7 @@ const InfoStep = (props: {
     props.attributes,
   );
   const [form] = Form.useForm();
+  const [itemTitle, setItemTitle] = useState<String>(props.attributes.name);
 
   const quantityTooltip = "If you do not add a defined quantity, the stock of your item will be unlimited";
 
@@ -660,13 +661,15 @@ const InfoStep = (props: {
               className="input"
               placeholder="Max 50 characters"
               allowClear
+              required
               value={props.attributes.name}
-              onChange={info =>
+              onChange={info => {
+                setItemTitle(info.target.value);
                 props.setAttributes({
                   ...props.attributes,
                   name: info.target.value,
                 })
-              }
+              }}
             />
           </label>
           {/* <label className="action-field">
@@ -776,6 +779,7 @@ const InfoStep = (props: {
         <Button
           type="primary"
           size="large"
+          disabled={itemTitle === ''}
           onClick={() => {
             form.validateFields().then(values => {
               const nftAttributes = values.attributes;
@@ -817,7 +821,7 @@ const RoyaltiesSplitter = (props: {
   useEffect(() => {
     const tempCreators = props.creators.filter((creator, index, self) =>
       index === self.findIndex((t) => (
-        t.key === creator.key
+        t.value === creator.value
       ))
     );
     const tempRoyalties = props.royalties.filter((creator, index, self) =>
@@ -825,12 +829,14 @@ const RoyaltiesSplitter = (props: {
         t.creatorKey === creator.creatorKey
       ))
     );
-    setRoyalties(
-      tempRoyalties.map(royalty => ({
-        creatorKey: royalty.creatorKey,
-        amount: Math.trunc(100 / tempRoyalties.length),
-      })),
-    )
+    let filteredRoyalties = tempRoyalties.filter(royalty =>
+      tempCreators.find((creator) => royalty.creatorKey === creator.key)
+      )
+    filteredRoyalties = filteredRoyalties.map(royalty => ({
+      creatorKey: royalty.creatorKey,
+      amount: Math.trunc(100 / filteredRoyalties.length),
+    }))
+    setRoyalties(filteredRoyalties)
     setCreators(tempCreators);
   }, [props.creators, props.royalties])
   
@@ -922,11 +928,24 @@ const RoyaltiesStep = (props: {
   const [isShowErrors, setIsShowErrors] = useState<boolean>(false);
 
   useEffect(() => {
+    if (props.attributes) {
+      const saved = props.attributes.creators?.map((creator, index) => ({
+        key: index.toString(),
+        label: shortenAddress(creator.address),
+        value: creator.address,
+      }));
+      if (saved !== undefined) {
+        setCreators(saved);
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (publicKey) {
       const key = publicKey.toBase58();
       setFixedCreators([
         {
-          key,
+          key: '0',
           label: shortenAddress(key),
           value: key,
         },
@@ -1052,16 +1071,19 @@ const RoyaltiesStep = (props: {
           type="primary"
           size="large"
           onClick={() => {
+            console.log("royalties: ", royalties);
+            console.log("fixedCreators: ", fixedCreators);
+            console.log("creators: ", creators);
             // Find all royalties that are invalid (0)
             const zeroedRoyalties = royalties.filter(
               royalty => royalty.amount === 0,
             );
 
-            if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
-              // Contains a share that is 0 or total shares does not equal 100, show errors.
-              setIsShowErrors(true);
-              return;
-            }
+            // if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
+            //   // Contains a share that is 0 or total shares does not equal 100, show errors.
+            //   setIsShowErrors(true);
+            //   return;
+            // }
 
             const creatorStructs: Creator[] = [
               ...fixedCreators,
@@ -1072,10 +1094,12 @@ const RoyaltiesStep = (props: {
                   address: c.value,
                   verified: c.value === publicKey?.toBase58(),
                   share:
-                    royalties.find(r => r.creatorKey === c.value)?.amount ||
+                    royalties.find(r => r.creatorKey === c.key)?.amount ||
                     Math.round(100 / royalties.length),
                 }),
             );
+
+            console.log("creatorStructs: ", creatorStructs)
 
             const share = creatorStructs.reduce(
               (acc, el) => (acc += el.share),
