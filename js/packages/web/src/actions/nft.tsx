@@ -16,7 +16,8 @@ import {
   WalletSigner,
   Attribute,
   getAssetCostToStore,
-  ARWEAVE_UPLOAD_ENDPOINT
+  FileOrString,
+  MetadataFile,
 } from '@oyster/common';
 import React, { Dispatch, SetStateAction } from 'react';
 import { MintLayout, Token } from '@solana/spl-token';
@@ -30,46 +31,96 @@ import crypto from 'crypto';
 
 import { AR_SOL_HOLDER_ID } from '../utils/ids';
 import BN from 'bn.js';
+import { UploadResponse } from 'react-aws-s3-typescript/dist/types';
+import Policy from "react-aws-s3-typescript/dist/Policy";
+import GetUrl from "react-aws-s3-typescript/dist/Url";
+import {dateYMD, xAmzDate} from 'react-aws-s3-typescript/dist/Date';
+import Signature from 'react-aws-s3-typescript/dist/Signature';
+
+
 
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
+const randFilename = getRandomString(20);
+const s3BucketUrl = 'https://marketplacesol.s3.amazonaws.com';
 
-interface IArweaveResult {
-  error?: string;
-  messages?: Array<{
-    filename: string;
-    status: 'success' | 'fail';
-    transactionId?: string;
-    error?: string;
-  }>;
+interface IConfig {
+  bucketName: string;
+  dirName?: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  s3Url?: string;
 }
 
-const uploadToArweave = async (data: FormData): Promise<IArweaveResult> => {
-  const resp = await fetch(
-    ARWEAVE_UPLOAD_ENDPOINT,
-    {
-      method: 'POST',
-      // @ts-ignore
-      body: data,
-    },
-  );
+export async function uploadFile(file: File, config: IConfig): Promise<UploadResponse> {
 
-  if (!resp.ok) {
-    return Promise.reject(
-      new Error(
-        'Unable to upload the artwork to Arweave. Please wait and then try again.',
-      ),
-    );
+  const fd = new FormData();
+
+  const fileName = `${file.name}`;
+  const key = `${config.dirName ? config.dirName + '/' : ''}${fileName}`;
+  const url: string = GetUrl(config);
+  fd.append('key', key);
+  fd.append('acl', 'public-read');
+  fd.append('Content-Type', file.type);
+  fd.append('x-amz-meta-uuid', '14365123651274');
+  fd.append('x-amz-server-side-encryption', 'AES256');
+  fd.append('X-Amz-Credential', `${config.accessKeyId}/${dateYMD}/${config.region}/s3/aws4_request`);
+  fd.append('X-Amz-Algorithm', 'AWS4-HMAC-SHA256');
+  fd.append('X-Amz-Date', xAmzDate);
+  fd.append('x-amz-meta-tag', '');
+  fd.append('Policy', Policy.getPolicy(config));
+  fd.append('X-Amz-Signature', Signature.getSignature(config, dateYMD, Policy.getPolicy(config)));
+  fd.append('file', file);
+
+  const data = await fetch(url, { method: 'post', body: fd });
+  if (!data.ok) return Promise.reject(data);
+  return Promise.resolve({
+    bucket: config.bucketName,
+    key: `${config.dirName ? config.dirName + '/' : ''}${fileName}`,
+    location: `${url}/${config.dirName ? config.dirName + '/' : ''}${fileName}`,
+    status: data.status,
+  });
+}
+
+export async function awsUpload(
+  files: File[],
+) {
+
+  const config = {
+    bucketName: 'marketplacesol',
+    dirName: randFilename,
+    region: 'us-east-1',
+    accessKeyId: '',
+    secretAccessKey: '',
+    s3Url: s3BucketUrl,
   }
 
-  const result: IArweaveResult = await resp.json();
 
-  if (result.error) {
-    return Promise.reject(new Error(result.error));
+  const urlFiles: UploadResponse[] = [];
+
+  for (const file of files)
+  {
+    try {
+      const res = await uploadFile(file, config);
+      urlFiles.push(res)
+      console.log(res);
+    } catch (exception) {
+      console.log(exception);
+    }
   }
+  return urlFiles;
+}
 
+function getRandomString(length) {
+  const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for ( let i = 0; i < length; i++ ) {
+      result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+  }
   return result;
-};
+}
+
 
 export const mintNFT = async (
   connection: Connection,
@@ -100,7 +151,7 @@ export const mintNFT = async (
     symbol: metadata.symbol,
     description: metadata.description,
     seller_fee_basis_points: metadata.sellerFeeBasisPoints,
-    image: metadata.image,
+    image: s3BucketUrl+'/'+randFilename+'/'+metadata.image,
     animation_url: metadata.animation_url,
     attributes: metadata.attributes,
     external_url: metadata.external_url,
@@ -115,6 +166,11 @@ export const mintNFT = async (
     },
   };
 
+  metadataContent.properties.files.forEach((value: FileOrString) => {
+    const valueFile = value as MetadataFile;
+    valueFile.uri = s3BucketUrl+'/'+randFilename+'/'+valueFile.uri;
+  });
+
   const realFiles: File[] = [
     ...files,
     new File([JSON.stringify(metadataContent)], RESERVED_METADATA),
@@ -124,6 +180,8 @@ export const mintNFT = async (
     await prepPayForFilesTxn(wallet, realFiles, metadata);
 
   progressCallback(1);
+
+  console.log("OK 1");
 
   const TOKEN_PROGRAM_ID = programIds().token;
 
@@ -189,6 +247,7 @@ export const mintNFT = async (
     wallet.publicKey.toBase58(),
   );
   progressCallback(2);
+  console.log("OK 2");
 
   // TODO: enable when using payer account to avoid 2nd popup
   // const block = await connection.getRecentBlockhash('singleGossip');
@@ -207,25 +266,35 @@ export const mintNFT = async (
     signers,
     'single',
   );
+
   progressCallback(3);
+  console.log("OK 3");
 
   try {
     await connection.confirmTransaction(txid, 'max');
     progressCallback(4);
-  } catch {
-    // ignore
+    console.log("OK 4");
+  } catch (exception) {
+    notify({
+      message: 'Error:',
+      description: (
+        <a>
+          ${exception}
+        </a>
+      ),
+      type: 'error',
+    });
   }
+
 
   // Force wait for max confirmations
   // await connection.confirmTransaction(txid, 'max');
   await connection.getParsedConfirmedTransaction(txid, 'confirmed');
 
   progressCallback(5);
-
+  console.log("OK 5");
   // this means we're done getting AR txn setup. Ship it off to ARWeave!
   const data = new FormData();
-  data.append('transaction', txid);
-  data.append('env', env);
 
   const tags = realFiles.reduce(
     (acc: Record<string, Array<{ name: string; value: string }>>, f) => {
@@ -239,18 +308,19 @@ export const mintNFT = async (
 
   // TODO: convert to absolute file name for image
 
-  const result: IArweaveResult = await uploadToArweave(data);
+  const result: UploadResponse[] = await awsUpload(realFiles);
   progressCallback(6);
-
-  const metadataFile = result.messages?.find(
-    m => m.filename === RESERVED_TXN_MANIFEST,
+  console.log("OK 6");
+  const metadataFile = result.find(
+    m => m.key.includes(RESERVED_METADATA)
   );
-  if (metadataFile?.transactionId && wallet.publicKey) {
+
+  if (metadataFile?.status == 204) {
     const updateInstructions: TransactionInstruction[] = [];
     const updateSigners: Keypair[] = [];
 
     // TODO: connect to testnet arweave
-    const arweaveLink = `https://arweave.net/${metadataFile.transactionId}`;
+    const arweaveLink = metadataFile.location;
     await updateMetadata(
       new Data({
         name: metadata.name,
@@ -279,6 +349,7 @@ export const mintNFT = async (
     );
 
     progressCallback(7);
+    console.log("OK 7");
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
     await createMasterEdition(
@@ -311,6 +382,7 @@ export const mintNFT = async (
     // );
 
     progressCallback(8);
+    console.log("OK 8");
 
     const txid = await sendTransactionWithRetry(
       connection,
@@ -336,7 +408,8 @@ export const mintNFT = async (
   // TODO:
   // 1. Jordan: --- upload file and metadata to storage API
   // 2. pay for storage by hashing files and attaching memo for each file
-
+  console.log("OK OK");
+  console.log('MetadaAccount',metadataAccount);
   return { metadataAccount };
 };
 
