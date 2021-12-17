@@ -42,7 +42,11 @@ import Signature from 'react-aws-s3-typescript/dist/Signature';
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
 const randFilename = getRandomString(20);
-const s3BucketUrl = 'https://marketplacesol.s3.amazonaws.com';
+const s3BucketUrlEnv = String(process.env.NEXT_PUBLIC_AWS_S3_BUCKET_URL);
+const bucketNameEnv = String(process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME) ;
+const regionEnv = String(process.env.NEXT_PUBLIC_AWS_REGION) ;
+const accessKeyEnv = String(process.env.NEXT_PUBLIC_AWS_ACCESSKEY_ID) ;
+const secretKeyEnv = String(process.env.NEXT_PUBLIC_AWS_SECRETACCESSKEY );
 
 interface IConfig {
   bucketName: string;
@@ -88,12 +92,12 @@ export async function awsUpload(
 ) {
 
   const config = {
-    bucketName: 'marketplacesol',
+    bucketName: bucketNameEnv,
     dirName: randFilename,
-    region: 'us-east-1',
-    accessKeyId: '',
-    secretAccessKey: '',
-    s3Url: s3BucketUrl,
+    region: regionEnv,
+    accessKeyId: accessKeyEnv,
+    secretAccessKey: secretKeyEnv,
+    s3Url: s3BucketUrlEnv,
   }
 
 
@@ -151,7 +155,7 @@ export const mintNFT = async (
     symbol: metadata.symbol,
     description: metadata.description,
     seller_fee_basis_points: metadata.sellerFeeBasisPoints,
-    image: s3BucketUrl+'/'+randFilename+'/'+metadata.image,
+    image: s3BucketUrlEnv+'/'+randFilename+'/'+metadata.image,
     animation_url: metadata.animation_url,
     attributes: metadata.attributes,
     external_url: metadata.external_url,
@@ -168,7 +172,7 @@ export const mintNFT = async (
 
   metadataContent.properties.files.forEach((value: FileOrString) => {
     const valueFile = value as MetadataFile;
-    valueFile.uri = s3BucketUrl+'/'+randFilename+'/'+valueFile.uri;
+    valueFile.uri = s3BucketUrlEnv+'/'+randFilename+'/'+valueFile.uri;
   });
 
   const realFiles: File[] = [
@@ -180,8 +184,6 @@ export const mintNFT = async (
     await prepPayForFilesTxn(wallet, realFiles, metadata);
 
   progressCallback(1);
-
-  console.log("OK 1");
 
   const TOKEN_PROGRAM_ID = programIds().token;
 
@@ -236,7 +238,7 @@ export const mintNFT = async (
     new Data({
       symbol: metadata.symbol,
       name: metadata.name,
-      uri: ' '.repeat(64), // size of url for arweave
+      uri: ' ',
       sellerFeeBasisPoints: metadata.sellerFeeBasisPoints,
       creators: metadata.creators,
     }),
@@ -247,7 +249,6 @@ export const mintNFT = async (
     wallet.publicKey.toBase58(),
   );
   progressCallback(2);
-  console.log("OK 2");
 
   // TODO: enable when using payer account to avoid 2nd popup
   // const block = await connection.getRecentBlockhash('singleGossip');
@@ -268,12 +269,10 @@ export const mintNFT = async (
   );
 
   progressCallback(3);
-  console.log("OK 3");
 
   try {
     await connection.confirmTransaction(txid, 'max');
     progressCallback(4);
-    console.log("OK 4");
   } catch (exception) {
     notify({
       message: 'Error:',
@@ -292,7 +291,7 @@ export const mintNFT = async (
   await connection.getParsedConfirmedTransaction(txid, 'confirmed');
 
   progressCallback(5);
-  console.log("OK 5");
+
   // this means we're done getting AR txn setup. Ship it off to ARWeave!
   const data = new FormData();
 
@@ -309,8 +308,8 @@ export const mintNFT = async (
   // TODO: convert to absolute file name for image
 
   const result: UploadResponse[] = await awsUpload(realFiles);
+
   progressCallback(6);
-  console.log("OK 6");
   const metadataFile = result.find(
     m => m.key.includes(RESERVED_METADATA)
   );
@@ -349,7 +348,6 @@ export const mintNFT = async (
     );
 
     progressCallback(7);
-    console.log("OK 7");
     // // In this instruction, mint authority will be removed from the main mint, while
     // // minting authority will be maintained for the Printing mint (which we want.)
     await createMasterEdition(
@@ -382,7 +380,6 @@ export const mintNFT = async (
     // );
 
     progressCallback(8);
-    console.log("OK 8");
 
     const txid = await sendTransactionWithRetry(
       connection,
@@ -408,8 +405,6 @@ export const mintNFT = async (
   // TODO:
   // 1. Jordan: --- upload file and metadata to storage API
   // 2. pay for storage by hashing files and attaching memo for each file
-  console.log("OK OK");
-  console.log('MetadaAccount',metadataAccount);
   return { metadataAccount };
 };
 
