@@ -62,7 +62,7 @@ export const ENDPOINTS = [
   },
   {
     name: 'devnet' as ENV,
-    endpoint: 'https://proud-falling-snow.solana-devnet.quiknode.pro/4506841ee53ae7d83115e2f08189b18e45dff3f4/',
+    endpoint: clusterApiUrl('devnet'),
     ChainId: ChainId.Devnet,
   },
 ];
