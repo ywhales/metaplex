@@ -748,6 +748,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
+            <div className={'comingsoonButton'}>
+              <p className={'comingsoonLabel'}>COMING SOON!</p>
+            </div>
           </Row>
           <Row>
             <Button
@@ -762,6 +765,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
+            <div className={'comingsoonButton'}>
+              <p className={'comingsoonLabel'}>COMING SOON!</p>
+            </div>
           </Row>
           <Row>
             <Button
@@ -777,6 +783,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
+            <div className={'comingsoonButton'}>
+              <p className={'comingsoonLabel'}>COMING SOON!</p>
+            </div>
           </Row>
           <Row>
             <Button
@@ -792,6 +801,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
+            <div className={'comingsoonButton'}>
+              <p className={'comingsoonLabel'}>COMING SOON!</p>
+            </div>
           </Row>
         </Col>
       </Row>

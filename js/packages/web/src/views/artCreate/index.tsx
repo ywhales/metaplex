@@ -14,6 +14,7 @@ import {
   Typography,
   Space,
   Card,
+  Tooltip,
 } from 'antd';
 import { ArtCard } from './../../components/ArtCard';
 import { UserSearch, UserValue } from './../../components/UserSearch';
@@ -47,6 +48,7 @@ import {
   LoadingOutlined,
   MinusCircleOutlined,
   PlusOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useTokenList } from '../../contexts/tokenList';
 
@@ -465,7 +467,7 @@ const UploadStep = (props: {
             <div className="ant-upload-drag-icon">
               <h3 style={{ fontWeight: 700 }}>Upload your creation</h3>
             </div>
-            <p className="ant-upload-text" style={{ color: '#6d6d6d' }}>
+            <p className="ant-upload-text" style={{ color: 'white' }}>
               Drag and drop, or click to browse
             </p>
           </Dragger>
@@ -556,7 +558,7 @@ const UploadStep = (props: {
   );
 };
 
-interface Royalty {
+export interface Royalty {
   creatorKey: string;
   amount: number;
 }
@@ -617,6 +619,9 @@ const InfoStep = (props: {
     props.attributes,
   );
   const [form] = Form.useForm();
+  const [itemTitle, setItemTitle] = useState<String>(props.attributes.name);
+
+  const quantityTooltip = "If you do not add a defined quantity, the stock of your item will be unlimited";
 
   useEffect(() => {
     setRoyalties(
@@ -636,7 +641,7 @@ const InfoStep = (props: {
         </p>
       </Row>
       <Row className="content-action" justify="space-around">
-        <Col>
+        <Col style={{ maxWidth: "50%" }}>
           {props.attributes.image && (
             <ArtCard
               image={image}
@@ -648,7 +653,7 @@ const InfoStep = (props: {
             />
           )}
         </Col>
-        <Col className="section" style={{ minWidth: 300 }}>
+        <Col className="section" style={{ minWidth: 300, maxWidth: "50%" }}>
           <label className="action-field">
             <span className="field-title">Title</span>
             <Input
@@ -656,13 +661,15 @@ const InfoStep = (props: {
               className="input"
               placeholder="Max 50 characters"
               allowClear
+              required
               value={props.attributes.name}
-              onChange={info =>
+              onChange={info => {
+                setItemTitle(info.target.value);
                 props.setAttributes({
                   ...props.attributes,
                   name: info.target.value,
                 })
-              }
+              }}
             />
           </label>
           {/* <label className="action-field">
@@ -697,7 +704,12 @@ const InfoStep = (props: {
             />
           </label>
           <label className="action-field">
-            <span className="field-title">Maximum Supply</span>
+            <span className="field-title" style={{ display: "flex" }}>
+                Maximum Supply
+              <Tooltip title={quantityTooltip} color="geekblue">
+                <InfoCircleOutlined style={{ marginLeft: "5px", color: "#32a3ff" }} />
+              </Tooltip>
+            </span>
             <InputNumber
               placeholder="Quantity"
               onChange={(val: number) => {
@@ -767,6 +779,7 @@ const InfoStep = (props: {
         <Button
           type="primary"
           size="large"
+          disabled={itemTitle === ''}
           onClick={() => {
             form.validateFields().then(values => {
               const nftAttributes = values.attributes;
@@ -798,14 +811,40 @@ const InfoStep = (props: {
 const RoyaltiesSplitter = (props: {
   creators: Array<UserValue>;
   royalties: Array<Royalty>;
+  setCreators: Function;
   setRoyalties: Function;
   isShowErrors?: boolean;
 }) => {
+  const [creators, setCreators] = useState([...props.creators]);
+  const [royalties, setRoyalties] = useState([...props.royalties]);
+
+  useEffect(() => {
+    const tempCreators = props.creators.filter((creator, index, self) =>
+      index === self.findIndex((t) => (
+        t.value === creator.value
+      ))
+    );
+    const tempRoyalties = props.royalties.filter((creator, index, self) =>
+      index === self.findIndex((t) => (
+        t.creatorKey === creator.creatorKey
+      ))
+    );
+    let filteredRoyalties = tempRoyalties.filter(royalty =>
+      tempCreators.find((creator) => royalty.creatorKey === creator.key)
+      )
+    filteredRoyalties = filteredRoyalties.map(royalty => ({
+      creatorKey: royalty.creatorKey,
+      amount: Math.trunc(100 / filteredRoyalties.length),
+    }))
+    setRoyalties(filteredRoyalties)
+    setCreators(tempCreators);
+  }, [props.creators, props.royalties])
+  
   return (
     <Col>
       <Row gutter={[0, 24]}>
-        {props.creators.map((creator, idx) => {
-          const royalty = props.royalties.find(
+        {creators.map((creator, idx) => {
+          const royalty = royalties.find(
             royalty => royalty.creatorKey === creator.key,
           );
           if (!royalty) return null;
@@ -813,8 +852,8 @@ const RoyaltiesSplitter = (props: {
           const amt = royalty.amount;
 
           const handleChangeShare = (newAmt: number) => {
-            props.setRoyalties(
-              props.royalties.map(_royalty => {
+            setRoyalties(
+              royalties.map(_royalty => {
                 return {
                   ..._royalty,
                   amount:
@@ -850,6 +889,14 @@ const RoyaltiesSplitter = (props: {
                 <Col span={4} style={{ paddingLeft: 12 }}>
                   <Slider value={amt} onChange={handleChangeShare} />
                 </Col>
+                {idx >= 1 && (
+                  <Col span={1} style={{ paddingLeft: 12 }}>
+                    <MinusCircleOutlined onClick={() => {
+                      props.setCreators(creators.filter(oldCreator => oldCreator.key !== creator.key));
+                      props.setRoyalties(royalties.filter(oldRoyalty => oldRoyalty.creatorKey !== creator.key));
+                    }} />
+                  </Col>
+                )}
                 {props.isShowErrors && amt === 0 && (
                   <Col style={{ paddingLeft: 12 }}>
                     <Text type="danger">
@@ -881,17 +928,30 @@ const RoyaltiesStep = (props: {
   const [isShowErrors, setIsShowErrors] = useState<boolean>(false);
 
   useEffect(() => {
+    if (props.attributes) {
+      const saved = props.attributes.creators?.map((creator, index) => ({
+        key: index.toString(),
+        label: shortenAddress(creator.address),
+        value: creator.address,
+      }));
+      if (saved !== undefined) {
+        setCreators(saved);
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (publicKey) {
       const key = publicKey.toBase58();
       setFixedCreators([
         {
-          key,
+          key: '0',
           label: shortenAddress(key),
           value: key,
         },
       ]);
     }
-  }, [connected, setCreators]);
+  }, [connected]);
 
   useEffect(() => {
     setRoyalties(
@@ -953,6 +1013,7 @@ const RoyaltiesStep = (props: {
             <RoyaltiesSplitter
               creators={[...fixedCreators, ...creators]}
               royalties={royalties}
+              setCreators={setCreators}
               setRoyalties={setRoyalties}
               isShowErrors={isShowErrors}
             />
@@ -962,7 +1023,7 @@ const RoyaltiesStep = (props: {
       <Row>
         <span
           onClick={() => setShowCreatorsModal(true)}
-          style={{ padding: 10, marginBottom: 10 }}
+          style={{ padding: 10, marginBottom: 10, cursor: "pointer" }}
         >
           <span
             style={{
@@ -993,7 +1054,7 @@ const RoyaltiesStep = (props: {
         >
           <label className="action-field" style={{ width: '100%' }}>
             <span className="field-title">Creators</span>
-            <UserSearch setCreators={setCreators} />
+            <UserSearch royalties={royalties} setShowCreatorsModal={setShowCreatorsModal} setCreators={setCreators} />
           </label>
         </MetaplexModal>
       </Row>
@@ -1010,16 +1071,19 @@ const RoyaltiesStep = (props: {
           type="primary"
           size="large"
           onClick={() => {
+            console.log("royalties: ", royalties);
+            console.log("fixedCreators: ", fixedCreators);
+            console.log("creators: ", creators);
             // Find all royalties that are invalid (0)
             const zeroedRoyalties = royalties.filter(
               royalty => royalty.amount === 0,
             );
 
-            if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
-              // Contains a share that is 0 or total shares does not equal 100, show errors.
-              setIsShowErrors(true);
-              return;
-            }
+            // if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
+            //   // Contains a share that is 0 or total shares does not equal 100, show errors.
+            //   setIsShowErrors(true);
+            //   return;
+            // }
 
             const creatorStructs: Creator[] = [
               ...fixedCreators,
@@ -1030,10 +1094,12 @@ const RoyaltiesStep = (props: {
                   address: c.value,
                   verified: c.value === publicKey?.toBase58(),
                   share:
-                    royalties.find(r => r.creatorKey === c.value)?.amount ||
+                    royalties.find(r => r.creatorKey === c.key)?.amount ||
                     Math.round(100 / royalties.length),
                 }),
             );
+
+            console.log("creatorStructs: ", creatorStructs)
 
             const share = creatorStructs.reduce(
               (acc, el) => (acc += el.share),
