@@ -32,8 +32,7 @@ export const METADATA_PROCESSOR = createPipeline(
       ({ account, pubkey }) => {
         const metadata = decodeMetadata(account.data, pubkey);
         if (
-          isValidHttpUrl(metadata.data.uri) &&
-          metadata.data.uri.indexOf('arweave') >= 0
+          isValidHttpUrl(metadata.data.uri)
         ) {
           return metadata;
         }
