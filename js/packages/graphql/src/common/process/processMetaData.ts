@@ -31,9 +31,8 @@ export const METADATA_PROCESSOR = createPipeline(
       acc => isMetadataV1Account(acc),
       ({ account, pubkey }) => {
         const metadata = decodeMetadata(account.data, pubkey);
-        if (
-          isValidHttpUrl(metadata.data.uri)
-        ) {
+        if (isValidHttpUrl(metadata.data.uri)) {
+
           return metadata;
         }
         return undefined;
