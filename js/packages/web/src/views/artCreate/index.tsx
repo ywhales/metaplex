@@ -621,7 +621,7 @@ const InfoStep = (props: {
   const [form] = Form.useForm();
   const [itemTitle, setItemTitle] = useState<String>(props.attributes.name);
 
-  const quantityTooltip = "If you do not add a defined quantity, the stock of your item will be unlimited";
+  const quantityTooltip = "If you don't set a quantity, the stock of your item will be unlimited and will apply to the Open Edition Auction. Instead if you set only 1 Supply your item will apply to the Limited Edition Auction.";
 
   useEffect(() => {
     setRoyalties(
