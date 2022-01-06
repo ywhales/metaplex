@@ -748,9 +748,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
-            <div className={'comingsoonButton'}>
+            {/* <div className={'comingsoonButton'}>
               <p className={'comingsoonLabel'}>COMING SOON!</p>
-            </div>
+            </div> */}
           </Row>
           <Row>
             <Button
@@ -765,27 +765,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
-            <div className={'comingsoonButton'}>
+            {/* <div className={'comingsoonButton'}>
               <p className={'comingsoonLabel'}>COMING SOON!</p>
-            </div>
-          </Row>
-          <Row>
-            <Button
-              className="type-btn"
-              size="large"
-              onClick={() => props.confirm(AuctionCategory.Tiered)}
-            >
-              <div>
-                <div>Tiered Auction</div>
-                <div className="type-btn-description">
-                  Participants get unique rewards based on their leaderboard
-                  rank
-                </div>
-              </div>
-            </Button>
-            <div className={'comingsoonButton'}>
-              <p className={'comingsoonLabel'}>COMING SOON!</p>
-            </div>
+            </div> */}
           </Row>
           <Row>
             <Button
@@ -798,6 +780,24 @@ const CategoryStep = (props: {
                 <div className="type-btn-description">
                   Sell an existing item in your NFT collection, including Master
                   NFTs
+                </div>
+              </div>
+            </Button>
+            {/* <div className={'comingsoonButton'}>
+              <p className={'comingsoonLabel'}>COMING SOON!</p>
+            </div> */}
+          </Row>
+          <Row>
+            <Button
+              className="type-btn"
+              size="large"
+              onClick={() => props.confirm(AuctionCategory.Tiered)}
+            >
+              <div>
+                <div>Tiered Auction</div>
+                <div className="type-btn-description">
+                  Participants get unique rewards based on their leaderboard
+                  rank
                 </div>
               </div>
             </Button>
