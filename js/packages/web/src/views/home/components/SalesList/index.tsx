@@ -1,12 +1,13 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Col, Layout, Row, Tabs } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
 
 import { useMeta } from '../../../../contexts';
 import { CardLoader } from '../../../../components/MyLoader';
 import { Banner } from '../../../../components/Banner';
 import { HowToBuyModal } from '../../../../components/HowToBuyModal';
+import { Spinner } from '../../../../components/Loader';
 
 import { useSales } from './hooks/useSales';
 import SaleCard from './components/SaleCard';
@@ -33,6 +34,13 @@ export const SalesListView = () => {
   const { isLoading } = useMeta();
   const { connected } = useWallet();
   const { sales, hasResaleAuctions } = useSales(activeKey);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoading(false);
+    }
+  }, [isLoading])
 
   return (
     <>
@@ -45,7 +53,7 @@ export const SalesListView = () => {
       />
       <Layout>
         <Content style={{ display: 'flex', flexWrap: 'wrap' }}>
-          <Col style={{ width: '100%', marginTop: 32 }}>
+          <Col style={{ width: '100%', marginTop: 32, overflow: "hidden" }}>
             <Row>
               <Tabs
                 activeKey={activeKey}
@@ -75,16 +83,32 @@ export const SalesListView = () => {
               </Tabs>
             </Row>
             <Row>
-              <Masonry
-                breakpointCols={breakpointColumnsObj}
-                className="masonry-grid"
-                columnClassName="masonry-grid_column"
-              >
-                {isLoading &&
-                  [...Array(10)].map((_, idx) => <CardLoader key={idx} />)}
-                {!isLoading &&
-                  sales.map((sale, idx) => <SaleCard sale={sale} key={idx} />)}
-              </Masonry>
+              {loading &&
+                <div className="masonry-div">
+                  <div className="masonry-div-content">
+                    <h1>LOADING</h1>
+                    <Spinner></Spinner>
+                  </div>
+                  <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="masonry-grid"
+                    columnClassName="masonry-grid_column"
+                  >
+                    {isLoading &&
+                      [...Array(10)]  .map((_, idx) => <CardLoader key={idx} />)}
+                  </Masonry>
+                </div>
+              }
+              {!loading &&
+                  <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="masonry-grid"
+                    columnClassName="masonry-grid_column"
+                  >
+                    {!isLoading &&
+                      sales.map((sale, idx) => <SaleCard sale={sale} key={idx} />)}
+                  </Masonry>
+              }
             </Row>
           </Col>
         </Content>
