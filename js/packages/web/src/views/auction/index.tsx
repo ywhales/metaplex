@@ -65,7 +65,7 @@ export const AuctionItem = ({
     position: index !== 0 ? 'absolute' : 'static',
     zIndex: -1 * index,
     marginLeft: size > 1 && index === 0 ? '0px' : 'auto',
-    background: 'black',
+    background: 'rgba(0,0,0,0.4)',
     boxShadow: 'rgb(0 0 0 / 10%) 12px 2px 20px 14px',
     aspectRatio: '1/1',
   };
@@ -111,6 +111,7 @@ export const AuctionView = () => {
 
   const tokenInfo = useTokenList()?.mainnetTokens.filter(m=>m.address == auction?.auction.info.tokenMint)[0]
 
+  console.log("auction?.items: ", auction?.items);
   const items = [
     ...(auction?.items
       .flat()
@@ -268,7 +269,7 @@ export const AuctionView = () => {
         <Col span={24} md={10} className={'img-cont-500'}>
           <div className="auction-view" style={{ minHeight: 300 }}>
             <Carousel
-              autoplay={false}
+              effect="fade"
               afterChange={index => setCurrentIndex(index)}
             >
               {items}

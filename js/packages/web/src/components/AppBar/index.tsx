@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Menu, Modal } from 'antd';
+import { Button, Menu, Modal, Tooltip } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Notifications } from '../Notifications';
 import useWindowDimensions from '../../utils/layout';
@@ -11,7 +11,7 @@ import {
   CurrentUserBadge,
   CurrentUserBadgeMobile,
 } from '../CurrentUserBadge';
-import { ConnectButton } from '@oyster/common';
+import { ConnectButton, ENDPOINTS, useConnectionConfig } from '@oyster/common';
 
 const getDefaultLinkActions = (connected: boolean) => {
   return [
@@ -109,12 +109,13 @@ const MetaplexMenu = () => {
 export const LogoLink = () => {
   return (
     <Link to={`/`}>
-      <img style={{ height: "60px", padding: 1, paddingLeft: "2rem" }} src={'/metaplex-logo.png'} />
+      <img style={{ height: "60px", padding: 1}} src={'/metaplex-logo.png'} />
     </Link>
   );
 };
 
 export const AppBar = () => {
+  const { endpoint } = useConnectionConfig();
   const { connected } = useWallet();
   return (
     <>
@@ -130,6 +131,14 @@ export const AppBar = () => {
           <MetaplexMenu />
         </div>
         <div className="app-right">
+          {ENDPOINTS.filter( endp => endp.endpoint === endpoint)
+            .map( ({ name, endpoint }) => (
+              <Tooltip title={name} key={endpoint} color="geekblue">
+                <div className="selected-network">
+                  {name.charAt(0).toUpperCase()}
+                </div>
+              </Tooltip>
+            ))}
           {!connected && (
             <HowToBuyModal buttonClassName="modal-button-default" />
           )}

@@ -10,6 +10,13 @@
     padding: 0 12px !important;
   }
 }
+
+.items-content {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: hidden !important;
+}
+
 .section {
   padding: 1px;
 }
@@ -103,10 +110,13 @@
 }
 
 .input {
-  background: #353434;
+  background: rgba(0, 0, 0, 0.45) !important;
   border-radius: 8px;
   padding: 10px;
   border-width: 0px;
+  .ant-input {
+    background: transparent !important;
+  }
 }
 
 .textarea {
@@ -117,7 +127,7 @@
   height: 80px;
   width: 450px;
   border-radius: 8px;
-  background-color: #403f49 !important;
+  background-color: rgba(0, 0, 0, 0.45) !important;
   border-width: 0px;
   margin-bottom: 20px;
   text-align: left;
@@ -135,7 +145,7 @@
 }
 
 .type-btn:hover {
-  background: linear-gradient(270deg, #616774 7.29%, #403f4c 100%) !important;
+  background-color: rgba(0, 0, 0, 0.30) !important;
 }
 .type-btn:disabled {
   pointer-events: none;

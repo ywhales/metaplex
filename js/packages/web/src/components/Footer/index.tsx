@@ -90,39 +90,41 @@ export const Footer = () => {
 
   return (
     <div className="footer-container">
-      <div className="footer-info">
-        {footerConf.showShopName ? (
-          <div className="footer-community">
-            <div className="sub-header">
-              {LABELS.STORE_NAME} NFT Marketplace
-            </div>
-            <div className="footer-link">Powered by Metaplex, Solana and Fluid Chains</div>
-          </div>
-        ) : null}
-        {footerConf.components.map(component => (
-          <div className="footer-section-container">
-            <div className="sub-header">{component.title}</div>
-            {component.links.map(link => (
-              <div className="body-text">
-                <a href={link.url} target="_blank" className="footer-link">
-                  {link.label}
-                </a>
+      <div className="inner-footer-container">
+        <div className="footer-info">
+          {footerConf.showShopName ? (
+            <div className="footer-community">
+              <div className="sub-header">
+                {LABELS.STORE_NAME} NFT Marketplace
               </div>
-            ))}
-          </div>
-        ))}
-        {footerConf.showEmailSubscriber ? (
-          <div className="footer-section-container subscriber-container">
-            <div className="subscriber-text">
-              {footerConf.emailSubscriberText}
+              <div className="footer-link">Powered by Metaplex, Solana and Fluid Chains</div>
             </div>
-            <NewsLetterForm />
+          ) : null}
+          {footerConf.components.map(component => (
+            <div className="footer-section-container">
+              <div className="sub-header">{component.title}</div>
+              {component.links.map(link => (
+                <div className="body-text">
+                  <a href={link.url} target="_blank" className="footer-link">
+                    {link.label}
+                  </a>
+                </div>
+              ))}
+            </div>
+          ))}
+          {footerConf.showEmailSubscriber ? (
+            <div className="footer-section-container subscriber-container">
+              <div className="subscriber-text">
+                {footerConf.emailSubscriberText}
+              </div>
+              <NewsLetterForm />
+            </div>
+          ) : null}
+        </div>
+        <div className="footer-foot">
+          <div className="small-body footer-link">
+            2022 {LABELS.STORE_NAME}, All rights reserved
           </div>
-        ) : null}
-      </div>
-      <div className="footer-foot">
-        <div className="small-body footer-link">
-          2021 {LABELS.STORE_NAME}, All rights reserved
         </div>
       </div>
     </div>
