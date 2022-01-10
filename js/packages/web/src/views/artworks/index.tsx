@@ -7,6 +7,7 @@ import { useCreatorArts, useUserArts } from '../../hooks';
 import { useMeta } from '../../contexts';
 import { CardLoader } from '../../components/MyLoader';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { Spinner } from '../../components/Loader';
 
 const { TabPane } = Tabs;
 
@@ -30,6 +31,7 @@ export const ArtworksView = () => {
     700: 2,
     500: 1,
   };
+  const [loading, setLoading] = useState(true);
 
   const items =
     activeKey === ArtworkViewState.Owned
@@ -46,34 +48,61 @@ export const ArtworksView = () => {
     }
   }, [connected, setActiveKey]);
 
+  useEffect(() => {
+    isLoading ? setLoading(true) : setLoading(false);
+  }, [isLoading])
+
   const artworkGrid = (
-    <Masonry
-      breakpointCols={breakpointColumnsObj}
-      className="my-masonry-grid"
-      columnClassName="my-masonry-grid_column"
-    >
-      {!isLoading
-        ? items.map((m, idx) => {
-            const id = m.pubkey;
-            return (
-              <Link to={`/art/${id}`} key={idx}>
-                <ArtCard
-                  key={id}
-                  pubkey={m.pubkey}
-                  preview={false}
-                  height={250}
-                  width={250}
-                />
-              </Link>
-            );
-          })
-        : [...Array(10)].map((_, idx) => <CardLoader key={idx} />)}
-    </Masonry>
+    <div>
+      {loading &&
+        <div className="masonry-div">
+          <div className="masonry-div-content">
+            <h1>LOADING</h1>
+            <Spinner></Spinner>
+          </div>
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="masonry-grid"
+            columnClassName="masonry-grid_column"
+          >
+            {isLoading &&
+              [...Array(10)].map((_, idx) => <CardLoader key={idx} />)
+            }
+          </Masonry>
+        </div>
+      }
+      {!loading &&
+        <div className="masonry-div">
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="masonry-grid"
+            columnClassName="masonry-grid_column"
+          >
+            {!isLoading &&
+              items.map((m, idx) => {
+                const id = m.pubkey;
+                return (
+                  <Link to={`/art/${id}`} key={idx}>
+                    <ArtCard
+                      key={id}
+                      pubkey={m.pubkey}
+                      preview={false}
+                      height={250}
+                      width={250}
+                    />
+                  </Link>
+                );
+              })
+            }
+          </Masonry>
+        </div>
+      }
+    </div>
   );
 
   return (
     <Layout style={{ margin: 0, marginTop: 30 }}>
-      <Content style={{ display: 'flex', flexWrap: 'wrap' }}>
+      <Content className="items-content">
         <Col style={{ width: '100%', marginTop: 10 }}>
           <Row>
             <Tabs
