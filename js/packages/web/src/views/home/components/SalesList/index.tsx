@@ -65,18 +65,21 @@ export const SalesListView = () => {
                       <span className="live"></span> Live
                     </>
                   }
+                  disabled={!connected}
                   key={LiveAuctionViewState.All}
                 ></TabPane>
                 {hasResaleAuctions && (
                   <TabPane
                     tab="Secondary Marketplace"
+                    disabled={!connected}
                     key={LiveAuctionViewState.Resale}
                   ></TabPane>
                 )}
-                <TabPane tab="Ended" key={LiveAuctionViewState.Ended}></TabPane>
+                <TabPane tab="Ended" disabled={!connected} key={LiveAuctionViewState.Ended}></TabPane>
                 {connected && (
                   <TabPane
                     tab="Participated"
+                    disabled={!connected}
                     key={LiveAuctionViewState.Participated}
                   ></TabPane>
                 )}
@@ -99,7 +102,7 @@ export const SalesListView = () => {
                   </Masonry>
                 </div>
               }
-              {!loading &&
+              {!loading && connected &&
                   <Masonry
                     breakpointCols={breakpointColumnsObj}
                     className="masonry-grid"
