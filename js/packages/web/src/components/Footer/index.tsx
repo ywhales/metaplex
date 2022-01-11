@@ -97,7 +97,7 @@ export const Footer = () => {
               <div className="sub-header">
                 {LABELS.STORE_NAME} NFT Marketplace
               </div>
-              <div className="footer-link">Powered by Metaplex, Solana and Fluid Chains</div>
+              <div className="footer-link">Powered by Solana, Metaplex and Fluid Chains</div>
             </div>
           ) : null}
           {footerConf.components.map(component => (
@@ -123,7 +123,7 @@ export const Footer = () => {
         </div>
         <div className="footer-foot">
           <div className="small-body footer-link">
-            2022 {LABELS.STORE_NAME}, All rights reserved
+            2022 {LABELS.STORE_NAME}
           </div>
         </div>
       </div>
