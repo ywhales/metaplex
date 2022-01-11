@@ -1,5 +1,5 @@
 export const LABELS = {
-  STORE_NAME: 'Fluid Chains',
+  STORE_NAME: 'YWhales',
   CONNECT_LABEL: 'Connect Wallet',
   GIVE_SOL: 'Give me SOL',
   FAUCET_INFO:
