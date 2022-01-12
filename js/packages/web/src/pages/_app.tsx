@@ -8,7 +8,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Fluid Chains NFT Marketplace</title>
+        <title>YWhales NFT Marketplace</title>
       </Head>
       <div id="root">
         <Component {...pageProps} />
