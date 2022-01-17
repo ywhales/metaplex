@@ -269,7 +269,6 @@ export const AuctionView = () => {
         <Col span={24} md={10} className={'img-cont-500'}>
           <div className="auction-view" style={{ minHeight: 300 }}>
             <Carousel
-              effect="fade"
               afterChange={index => setCurrentIndex(index)}
             >
               {items}
