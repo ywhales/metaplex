@@ -421,6 +421,9 @@ const UploadStep = (props: {
             setCoverFile(file);
             setCoverArtError(undefined);
           }}
+          onRemove={() => {
+            setCoverFile(undefined);
+          }}
         >
           <div className="ant-upload-drag-icon">
             <h3 style={{ fontWeight: 700 }}>

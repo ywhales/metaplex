@@ -13,7 +13,14 @@ import {
   Card,
   Select,
   Checkbox,
+  Tooltip,
 } from 'antd';
+import SwiperCore, { Navigation } from 'swiper';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
 import { ArtCard } from './../../components/ArtCard';
 import { QUOTE_MINT } from './../../constants';
 import { Confetti } from './../../components/Confetti';
@@ -141,6 +148,8 @@ export interface AuctionState {
   quoteMintInfo: MintInfo;
   quoteMintInfoExtended: TokenInfo;
 }
+
+SwiperCore.use([Navigation]);
 
 export const AuctionCreateView = () => {
   const connection = useConnection();
@@ -600,6 +609,7 @@ export const AuctionCreateView = () => {
 
   const reviewStep = (
     <ReviewStep
+      tieredAttributes={tieredAttributes}
       attributes={attributes}
       setAttributes={setAttributes}
       confirm={() => {
@@ -801,9 +811,9 @@ const CategoryStep = (props: {
                 </div>
               </div>
             </Button>
-            <div className={'comingsoonButton'}>
+            {/* <div className={'comingsoonButton'}>
               <p className={'comingsoonLabel'}>COMING SOON!</p>
-            </div>
+            </div> */}
           </Row>
         </Col>
       </Row>
@@ -1547,6 +1557,39 @@ const TierTableStep = (props: {
   confirm: () => void;
 }) => {
 
+  const [hasAllWinners, setHasAllWinners] = useState(false);
+  const baseArray = Array.from(Array(props.maxWinners).keys());
+
+  const insuficientData = "You cannot proceed with the auction until you have the items assigned to the tiers, and have at least 1 winner per tier";
+
+  useEffect(() => {
+    const maxWinnersArray = [...baseArray];
+    let tiersConfirmations = 0;
+    if ( props.attributes.tiers.length > 0 ) {
+      for (const tier of props.attributes.tiers) {
+        if (tier.items.length > 0 && tier.winningSpots.length > 0) {
+          tiersConfirmations = tiersConfirmations + 1;
+            for (const spot of tier.winningSpots) {
+              if (maxWinnersArray.includes(spot)) {
+                const index = maxWinnersArray.indexOf(spot);
+                if (index > -1) {
+                  maxWinnersArray.splice(index, 1)
+                }
+              }
+            }
+        } else {
+          break;
+        }
+      }
+      if (tiersConfirmations === props.attributes.tiers.length && maxWinnersArray.length < 1) {
+        setHasAllWinners(true);
+      }
+      else {
+        setHasAllWinners(false);
+      }
+    }
+  }, [props.attributes])
+
   const newImmutableTiers = (tiers: Tier[]) => {
     return tiers.map(wc => ({
       items: [...wc.items.map(it => ({ ...it }))],
@@ -1810,14 +1853,32 @@ const TierTableStep = (props: {
         </Col>
       </Row>
       <Row>
-        <Button
-          type="primary"
-          size="large"
-          onClick={props.confirm}
-          className="action-btn"
-        >
-          Continue to Review
-        </Button>
+        {!hasAllWinners &&
+          <Tooltip title={insuficientData} placement="bottomRight" color="#1b4ee7">
+            <span style={{ width: "100%"}}>
+              <Button
+                type="primary"
+                size="large"
+                onClick={props.confirm}
+                disabled={!hasAllWinners}
+                className="action-btn"
+              >
+                Continue to Review
+              </Button>
+            </span>
+          </Tooltip>
+        }
+        {hasAllWinners &&
+          <Button
+            type="primary"
+            size="large"
+            onClick={props.confirm}
+            disabled={!hasAllWinners}
+            className="action-btn"
+          >
+            Continue to Review
+          </Button>
+        }
       </Row>
     </>
   );
@@ -1834,7 +1895,7 @@ const ParticipationStep = (props: {
         <h2>Participation NFT</h2>
         <p>
           Provide NFT that will be awarded as an Open Edition NFT for auction
-          participation.
+          participation (This is an optional reward).
         </p>
       </Row>
       <Row className="content-action">
@@ -1900,10 +1961,12 @@ const ParticipationStep = (props: {
 const ReviewStep = (props: {
   confirm: () => void;
   attributes: AuctionState;
+  tieredAttributes: TieredAuctionState;
   setAttributes: Function;
   connection: Connection;
 }) => {
   const [cost, setCost] = useState(0);
+  const [showParticipation, setShowParticipation] = useState(false);
   useEffect(() => {
     const rentCall = Promise.all([
       props.connection.getMinimumBalanceForRentExemption(MintLayout.span),
@@ -1912,7 +1975,15 @@ const ReviewStep = (props: {
     // TODO: add
   }, [setCost]);
 
-  let item = props.attributes.items?.[0];
+  const item = props.attributes.items?.[0];
+  const participationItem = props.attributes.participationNFT;
+  const items = props.tieredAttributes.items.map((item, idx) =>
+    <SwiperSlide className="swipperElement" key={idx}>
+      <div style={{ width: 350 }}>
+        <ArtCard pubkey={item.metadata.pubkey} small={true} key={idx} />
+      </div>
+    </SwiperSlide>
+  );
 
   return (
     <>
@@ -1922,11 +1993,40 @@ const ReviewStep = (props: {
       </Row>
       <Row className="content-action">
         <Col xl={12}>
-          {item?.metadata.info && (
+          {showParticipation && participationItem?.metadata.info && 
+          (props.attributes.category === AuctionCategory.Tiered ||
+          props.attributes.category === AuctionCategory.Limited ||
+          props.attributes.category === AuctionCategory.Single) && (
+            <ArtCard pubkey={participationItem?.metadata.pubkey} small={true} />
+          )}
+          {props.attributes.category !== AuctionCategory.Tiered && item?.metadata.info && !showParticipation && (
             <ArtCard pubkey={item.metadata.pubkey} small={true} />
           )}
+          {!showParticipation && props.attributes.category === AuctionCategory.Tiered &&
+            <div>
+              <Swiper
+                navigation={true}
+                spaceBetween={50}
+                slidesPerView={1}
+              >
+                {items}
+              </Swiper>
+            </div>
+          }
         </Col>
-        <Col className="section" xl={12}>
+        <Col className="right-section" xl={12}>
+          {(props.attributes.category === AuctionCategory.Tiered ||
+          props.attributes.category === AuctionCategory.Limited ||
+          props.attributes.category === AuctionCategory.Single) &&
+            <div>
+              {!showParticipation &&
+                <Button size='small' onClick={() => setShowParticipation(true)}>Participation NFT</Button>
+              }
+              {showParticipation &&
+                <Button size='small' onClick={() => setShowParticipation(false)}>Auction NFT's</Button>
+              }
+            </div>
+          }
           <Statistic
             className="create-statistic"
             title="Copies"
@@ -1936,11 +2036,16 @@ const ReviewStep = (props: {
                 : props.attributes.editions
             }
           />
-          {cost ? (
+          <Statistic className="create-statistic" title="Floor price" value={props.attributes.priceFloor} />
+          <Statistic className="create-statistic" title="Tick price" value={props.attributes.priceTick} />
+          {props.attributes.category != AuctionCategory.InstantSale &&
+            <Statistic className="create-statistic" title="Auction duration" value={props.attributes.auctionDuration + " minutes"} />
+          }
+          {/* {cost ? (
             <AmountLabel title="Cost to Create" amount={cost} tokenInfo={useTokenList().tokenMap.get(WRAPPED_SOL_MINT.toString())}/>
           ) : (
             <Spin />
-          )}
+          )} */}
         </Col>
       </Row>
       <Row style={{ display: 'block' }}>
