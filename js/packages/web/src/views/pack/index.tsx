@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Row, Col } from 'antd';
 
-import Card from './components/Card';
 import RedeemModal from './components/RedeemModal';
 import PackSidebar from './components/PackSidebar';
 import { useMeta } from '@oyster/common';
@@ -9,10 +8,14 @@ import { useParams } from 'react-router';
 
 export const PackView = () => {
   const [openModal, setOpenModal] = useState(false);
-  const { id }: { id: string } = useParams();
+  const { provingProcess, pack } = usePack();
 
-  const { packs } = useMeta();
-  const pack = packs[id];
+  const cardsRedeemed = provingProcess?.info.cardsRedeemed || 0;
+  const packSize = pack?.info.allowedAmountToRedeem || 0;
+  const cards = useMemo(
+    () => Array.from({ length: packSize }, (_, i) => i),
+    [packSize, cardsRedeemed],
+  );
 
   const total = pack?.info?.allowedAmountToRedeem || 0;
   const mockBlocks = Array.from({ length: total }, (v, i) => i);
@@ -22,8 +25,8 @@ export const PackView = () => {
       <Row>
         <Col md={16}>
           <div className="pack-view__list">
-            {mockBlocks.map((block, i) => (
-              <Card key={i} value={i} />
+            {cards.map(index => (
+              <ArtCard key={index} index={index} isModalOpened={openModal} />
             ))}
           </div>
         </Col>

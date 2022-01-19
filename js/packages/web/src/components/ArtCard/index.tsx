@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardProps, Button, Badge } from 'antd';
 import { MetadataCategory, StringPublicKey } from '@oyster/common';
-import { ArtContent } from './../ArtContent';
+import { ArtContent } from '../ArtContent';
 import { useArt } from '../../hooks';
 import { PublicKey } from '@solana/web3.js';
 import { Artist, ArtType } from '../../types';
@@ -23,7 +23,7 @@ export interface ArtCardProps extends CardProps {
   creators?: Artist[];
   preview?: boolean;
   small?: boolean;
-  close?: () => void;
+  onClose?: () => void;
 
   height?: number;
   width?: number;
@@ -42,7 +42,7 @@ export const ArtCard = (props: ArtCardProps) => {
     preview,
     creators,
     description,
-    close,
+    onClose,
     pubkey,
     height,
     width,
@@ -94,6 +94,22 @@ export const ArtCard = (props: ArtCardProps) => {
       }
       {...rest}
     >
+      <div className="art-card__header">
+        <MetaAvatar creators={creators} size={32} />
+        <div className="edition-badge">{badge}</div>
+      </div>
+      <div className="art-content__wrapper">
+        <ArtContent
+          pubkey={pubkey}
+          uri={image}
+          animationURL={animationURL}
+          category={category}
+          preview={preview}
+          height={height}
+          width={width}
+          artView={artView}
+        />
+      </div>
       <Meta
         title={`${name}`}
         description={

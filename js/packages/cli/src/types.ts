@@ -251,3 +251,5 @@ export const METADATA_SCHEMA = new Map<any, any>([
     },
   ],
 ]);
+
+export type AssetKey = { mediaExt: string; index: string };

@@ -843,10 +843,13 @@ const InstantSaleStep = ({
   }
 
   //console.log("OBJ MINT", mint.toBase58())
+  const isMasterEdition = !!attributes?.items?.[0]?.masterEdition;
 
   const copiesEnabled = useMemo(
-    () => !!attributes?.items?.[0]?.masterEdition?.info?.maxSupply,
-    [attributes?.items?.[0]],
+    () => {
+      const maxSupply = attributes?.items?.[0]?.masterEdition?.info?.maxSupply;
+      return !!maxSupply && maxSupply.toNumber() > 0;
+    },[attributes?.items?.[0]]
   );
   const artistFilter = useCallback(
     (i: SafetyDepositDraft) =>
@@ -898,7 +901,7 @@ const InstantSaleStep = ({
                     Sell limited number of copies
                   </Option>
                 )}
-                {!copiesEnabled && (
+                {!copiesEnabled && isMasterEdition && (
                   <Option value={InstantSaleType.Open}>
                     Sell unlimited number of copies
                   </Option>
@@ -2102,6 +2105,13 @@ const ReviewStep = (props: {
             ? 'List for Sale'
             : 'Publish Auction'}
         </Button>
+        <FundsIssueModal
+          message={"Estimated Minimum Fee"}
+          minimumFunds={MINIMUM_SAFE_FEE_AUCTION_CREATION}
+          currentFunds={balance}
+          isModalVisible={showFundsIssueModal}
+          onClose={() => setShowFundsIssueModal(false)}
+        />
       </Row>
     </>
   );
@@ -2190,8 +2200,10 @@ const Congrats = (props: {
           </Button>
           <Button
             className="metaplex-button"
-            onClick={_ =>
-              history.push(`/auction/${props.auction?.auction.toString()}`)
+            onClick={() => {
+                history.push(`/`);
+                history.go(0);
+              }
             }
           >
             <span>See it in your auctions</span>
