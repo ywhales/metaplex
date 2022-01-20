@@ -5,7 +5,6 @@ import { ArtCard } from './../../components/ArtCard';
 import { useUserArts } from '../../hooks';
 import Masonry from 'react-masonry-css';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
-import AuctionItemCard from './AuctionItemCard';
 
 export interface ArtSelectorProps extends ButtonProps {
   selected: SafetyDepositDraft[];
@@ -60,12 +59,14 @@ export const ArtSelector = (props: ArtSelectorProps) => {
         columnClassName="my-masonry-grid_column"
       >
         {selected.map(m => {
-          const key = m?.metadata.pubkey || '';
+          let key = m?.metadata.pubkey || '';
+
           return (
-            <AuctionItemCard
+            <ArtCard
               key={key}
-              current={m}
-              onSelect={open}
+              pubkey={m.metadata.pubkey}
+              preview={false}
+              onClick={open}
               onClose={() => {
                 setSelected(selected.filter(_ => _.metadata.pubkey !== key));
                 confirm();
@@ -90,7 +91,6 @@ export const ArtSelector = (props: ArtSelectorProps) => {
         onOk={confirm}
         width={1100}
         footer={null}
-        className={'modalp-40'}
       >
         <Row className="call-to-action" style={{ marginBottom: 0 }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5em" }}>
@@ -126,7 +126,7 @@ export const ArtSelector = (props: ArtSelectorProps) => {
                   ? new Set(list.filter(item => item !== id))
                   : new Set([...list, id]);
 
-                const selected = items.filter(item =>
+                let selected = items.filter(item =>
                   newSet.has(item.metadata.pubkey),
                 );
                 setSelected(selected);
@@ -137,15 +137,12 @@ export const ArtSelector = (props: ArtSelectorProps) => {
               };
 
               return (
-                <AuctionItemCard
+                <ArtCard
                   key={id}
                   pubkey={m.metadata.pubkey}
                   preview={false}
                   onClick={onSelect}
                   className={isSelected ? 'selected-card' : 'not-selected-card'}
-                  isSelected={isSelected}
-                  current={m}
-                  onSelect={onSelect}
                 />
               );
             })}

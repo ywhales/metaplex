@@ -111,7 +111,6 @@ export const AuctionView = () => {
 
   const tokenInfo = useTokenList()?.mainnetTokens.filter(m=>m.address == auction?.auction.info.tokenMint)[0]
 
-  console.log("auction?.items: ", auction?.items);
   const items = [
     ...(auction?.items
       .flat()

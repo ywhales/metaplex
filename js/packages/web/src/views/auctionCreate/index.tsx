@@ -843,13 +843,10 @@ const InstantSaleStep = ({
   }
 
   //console.log("OBJ MINT", mint.toBase58())
-  const isMasterEdition = !!attributes?.items?.[0]?.masterEdition;
 
   const copiesEnabled = useMemo(
-    () => {
-      const maxSupply = attributes?.items?.[0]?.masterEdition?.info?.maxSupply;
-      return !!maxSupply && maxSupply.toNumber() > 0;
-    },[attributes?.items?.[0]]
+    () => !!attributes?.items?.[0]?.masterEdition?.info?.maxSupply,
+    [attributes?.items?.[0]],
   );
   const artistFilter = useCallback(
     (i: SafetyDepositDraft) =>
@@ -901,7 +898,7 @@ const InstantSaleStep = ({
                     Sell limited number of copies
                   </Option>
                 )}
-                {!copiesEnabled && isMasterEdition && (
+                {!copiesEnabled && (
                   <Option value={InstantSaleType.Open}>
                     Sell unlimited number of copies
                   </Option>
@@ -2022,7 +2019,7 @@ const ReviewStep = (props: {
           props.attributes.category === AuctionCategory.Limited ||
           props.attributes.category === AuctionCategory.Single) &&
             <div>
-              {!showParticipation &&
+              {!showParticipation && participationItem !== undefined &&
                 <Button size='small' onClick={() => setShowParticipation(true)}>Participation NFT</Button>
               }
               {showParticipation &&
@@ -2105,13 +2102,6 @@ const ReviewStep = (props: {
             ? 'List for Sale'
             : 'Publish Auction'}
         </Button>
-        <FundsIssueModal
-          message={"Estimated Minimum Fee"}
-          minimumFunds={MINIMUM_SAFE_FEE_AUCTION_CREATION}
-          currentFunds={balance}
-          isModalVisible={showFundsIssueModal}
-          onClose={() => setShowFundsIssueModal(false)}
-        />
       </Row>
     </>
   );
@@ -2200,7 +2190,7 @@ const Congrats = (props: {
           </Button>
           <Button
             className="metaplex-button"
-            onClick={() => {
+            onClick={ () => {
                 history.push(`/`);
                 history.go(0);
               }
