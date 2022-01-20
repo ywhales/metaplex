@@ -74,7 +74,7 @@ export async function arweaveUpload(
     manifestBuffer.length,
     estimatedManifestSize,
   ]);
-  console.log(`lamport cost to store ${image}: ${storageCost}`);
+  log.debug(`lamport cost to store ${image}: ${storageCost}`);
 
   const instructions = [
     anchor.web3.SystemProgram.transfer({
@@ -116,7 +116,7 @@ export async function arweaveUpload(
       imageFile.transactionId
     }?ext=${imageExt.replace('.', '')}`;
     log.debug(`File uploaded: ${link}`);
-    return link;
+    return [link, imageLink];
   } else {
     // @todo improve
     throw new Error(`No transaction ID for upload: ${index}`);

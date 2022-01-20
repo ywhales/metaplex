@@ -72,5 +72,5 @@ export async function awsUpload(
     updatedManifestBuffer,
   );
 
-  return metadataUrl;
+  return [metadataUrl, mediaUrl];
 }

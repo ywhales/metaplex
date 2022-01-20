@@ -10,6 +10,7 @@ import {
   fromUTF8Array,
   parseDate,
   parsePrice,
+  shuffle,
 } from './helpers/various';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import {
@@ -21,8 +22,10 @@ import {
 } from './helpers/constants';
 import {
   getCandyMachineAddress,
+  getProgramAccounts,
   loadCandyProgram,
   loadWalletKey,
+  AccountAndPubkey,
 } from './helpers/accounts';
 import { Config } from './types';
 import { upload } from './commands/upload';
@@ -31,7 +34,10 @@ import { verifyTokenMetadata } from './commands/verifyTokenMetadata';
 import { loadCache, saveCache } from './helpers/cache';
 import { mint } from './commands/mint';
 import { signMetadata } from './commands/sign';
-import { signAllMetadataFromCandyMachine } from './commands/signAll';
+import {
+  getAccountsByCreatorAddress,
+  signAllMetadataFromCandyMachine,
+} from './commands/signAll';
 import log from 'loglevel';
 import { withdraw } from './commands/withdraw';
 import { StorageType } from './helpers/storage-type';
@@ -46,7 +52,6 @@ program.version('0.0.2');
 if (!fs.existsSync(CACHE_PATH)) {
   fs.mkdirSync(CACHE_PATH);
 }
-
 log.setLevel(log.levels.INFO);
 programCommand('update_config_account')
   .argument(
@@ -393,7 +398,12 @@ programCommand('verify_upload')
               cacheItem.onChain = false;
               allGood = false;
             } else {
-              const json = await fetch(cacheItem.link);
+              let json;
+              try {
+                json = await fetch(cacheItem.link);
+              } catch (e) {
+                json = { status: 404 };
+              }
               if (
                 json.status == 200 ||
                 json.status == 204 ||
@@ -402,7 +412,12 @@ programCommand('verify_upload')
                 const body = await json.text();
                 const parsed = JSON.parse(body);
                 if (parsed.image) {
-                  const check = await fetch(parsed.image);
+                  let check;
+                  try {
+                    check = await fetch(parsed.image);
+                  } catch (e) {
+                    check = { status: 404 };
+                  }
                   if (
                     check.status == 200 ||
                     check.status == 204 ||
