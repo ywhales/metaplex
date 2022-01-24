@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Menu, Modal, Tooltip } from 'antd';
+import { Button, Menu, Modal } from 'antd';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Notifications } from '../Notifications';
 import useWindowDimensions from '../../utils/layout';
@@ -11,7 +11,7 @@ import {
   CurrentUserBadge,
   CurrentUserBadgeMobile,
 } from '../CurrentUserBadge';
-import { ConnectButton, ENDPOINTS, useConnectionConfig } from '@oyster/common';
+import { ConnectButton } from '@oyster/common';
 import { MobileNavbar } from '../MobileNavbar';
 
 const getDefaultLinkActions = (connected: boolean) => {
@@ -51,7 +51,7 @@ export const MetaplexMenu = () => {
     return (
       <>
         <Modal
-          title={<img src={'/metaplex-logo.png'} />}
+          title={<img src={'/metaplex-logo.svg'} />}
           visible={isModalVisible}
           footer={null}
           className={'modal-box'}
@@ -110,13 +110,12 @@ export const MetaplexMenu = () => {
 export const LogoLink = () => {
   return (
     <Link to={`/`}>
-      <img style={{ height: "60px", padding: 1}} src={'/metaplex-logo.png'} />
+      <img src={'/metaplex-logo.svg'} />
     </Link>
   );
 };
 
 export const AppBar = () => {
-  const { endpoint } = useConnectionConfig();
   const { connected } = useWallet();
   return (
     <>
@@ -124,19 +123,10 @@ export const AppBar = () => {
       <div id="desktop-navbar">
         <div className="app-left">
           <LogoLink />
-        </div>
-        <div className="app-center">
+          &nbsp;&nbsp;&nbsp;
           <MetaplexMenu />
         </div>
         <div className="app-right">
-          {ENDPOINTS.filter( endp => endp.endpoint === endpoint)
-            .map( ({ name, endpoint }) => (
-              <Tooltip title={name} key={endpoint} color="geekblue">
-                <div className="selected-network">
-                  {name.charAt(0).toUpperCase()}
-                </div>
-              </Tooltip>
-            ))}
           {!connected && (
             <HowToBuyModal buttonClassName="modal-button-default" />
           )}

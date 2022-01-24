@@ -135,7 +135,8 @@ const RedeemModal = ({
           </>
         )}
       </div>
-  </Modal>
-  )
-}
+    </Modal>
+  );
+};
+
 export default RedeemModal;

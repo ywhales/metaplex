@@ -9,9 +9,9 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useHistory } from 'react-router-dom';
 
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
-import { useUserArts } from '../../hooks';
+import { useExtendedArt, useUserArts } from '../../hooks';
 
-import { InfoFormState, PackState } from './interface';
+import { PackState } from './interface';
 import { INITIAL_PACK_STATE } from './data';
 import { CreatePackSteps } from './types';
 import {
@@ -26,7 +26,6 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import SelectItemsStep from './components/SelectItemsStep';
 import AdjustQuantitiesStep from './components/AdjustQuantitiesStep';
-import DesignAndInfoStep from './components/DesignAndInfoStep';
 import ReviewAndMintStep from './components/ReviewAndMintStep';
 import TransactionErrorModal from '../../components/TransactionErrorModal';
 import { sendCreatePack } from './transactions/createPack';
@@ -186,7 +185,7 @@ export const PackCreateView = (): ReactElement => {
     step === CreatePackSteps.SelectVoucher;
 
   return (
-    <div className="pack-create-wrapper">
+    <div className="pack-create-wrapper" ref={ref}>
       <Sidebar
         step={step}
         setStep={goToNextStep}
@@ -232,17 +231,6 @@ export const PackCreateView = (): ReactElement => {
             isUnlimited={isUnlimitedSupply}
             setPackState={setPackState}
           />
-        )}
-
-        {/* {step === CreatePackSteps.SalesSettings && (
-          <SalesSettingsStep
-            redeemEndDate={redeemEndDate}
-            setPackState={setPackState}
-          />
-        )} */}
-
-        {step === CreatePackSteps.DesignAndInfo && (
-          <DesignAndInfoStep form={designForm} setPackState={setPackState} />
         )}
 
         {step === CreatePackSteps.ReviewAndMint && (

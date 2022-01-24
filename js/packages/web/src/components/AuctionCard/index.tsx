@@ -428,7 +428,7 @@ export const AuctionCard = ({
       wallet.publicKey &&
       auctionView.auction.info.bidState.type == BidStateType.EnglishAuction
     ) {
-      let winnerIndex = auctionView.auction.info.bidState.getWinnerIndex(
+      const winnerIndex = auctionView.auction.info.bidState.getWinnerIndex(
         wallet.publicKey.toBase58(),
       );
       if (winnerIndex === null)

@@ -82,7 +82,9 @@ export function MetaProvider({ children = null as any }) {
       setIsLoading(true);
     }
     setIsLoading(true);
+
     const nextState = await pullStoreMetadata(connection, state);
+
     setIsLoading(false);
     setState(nextState);
     await updateMints(nextState.metadataByMint);
@@ -219,9 +221,15 @@ export function MetaProvider({ children = null as any }) {
       setIsLoading(true);
     }
 
+    const shouldFetchNftPacks = process.env.NEXT_ENABLE_NFT_PACKS === 'true';
+    let nextState = await pullPage(
+      connection,
+      page,
+      state,
+      wallet?.publicKey,
+      shouldFetchNftPacks,
+    );
     console.log('-----> Query started');
-
-    let nextState = await pullPage(connection, page, state);
 
     if (nextState.storeIndexer.length) {
       if (USE_SPEED_RUN) {

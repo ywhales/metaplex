@@ -14,7 +14,6 @@ import {
   Typography,
   Space,
   Card,
-  Tooltip,
 } from 'antd';
 import { ArtCard } from './../../components/ArtCard';
 import { UserSearch, UserValue } from './../../components/UserSearch';
@@ -24,7 +23,6 @@ import {
   MAX_METADATA_LEN,
   useConnection,
   IMetadataExtension,
-  Attribute,
   MetadataCategory,
   useConnectionConfig,
   Creator,
@@ -35,7 +33,7 @@ import {
   StringPublicKey,
   WRAPPED_SOL_MINT,
   getAssetCostToStore,
-  LAMPORT_MULTIPLIER
+  LAMPORT_MULTIPLIER,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -48,7 +46,6 @@ import {
   LoadingOutlined,
   MinusCircleOutlined,
   PlusOutlined,
-  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useTokenList } from '../../contexts/tokenList';
 
@@ -58,7 +55,7 @@ const { Text } = Typography;
 
 export const ArtCreateView = () => {
   const connection = useConnection();
-  const { env } = useConnectionConfig();
+  const { endpoint } = useConnectionConfig();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
   const { step_param }: { step_param: string } = useParams();
@@ -125,7 +122,7 @@ export const ArtCreateView = () => {
       const _nft = await mintNFT(
         connection,
         wallet,
-        env,
+        endpoint.name,
         files,
         metadata,
         setNFTcreateProgress,
@@ -379,6 +376,12 @@ const UploadStep = (props: {
     }
   };
 
+  const { category } = props.attributes.properties;
+
+  const urlPlaceholder = `http://example.com/path/to/${
+    category === MetadataCategory.Image ? 'image' : 'file'
+  }`;
+
   return (
     <>
       <Row className="call-to-action">
@@ -427,9 +430,6 @@ const UploadStep = (props: {
             setCoverFile(file);
             setCoverArtError(undefined);
           }}
-          onRemove={() => {
-            setCoverFile(undefined);
-          }}
         >
           <div className="ant-upload-drag-icon">
             <h3 style={{ fontWeight: 700 }}>
@@ -439,7 +439,7 @@ const UploadStep = (props: {
           {coverArtError ? (
             <Text type="danger">{coverArtError}</Text>
           ) : (
-            <p className="ant-upload-text" style={{ color: '#fff' }}>
+            <p className="ant-upload-text" style={{ color: '#6d6d6d' }}>
               Drag and drop, or click to browse
             </p>
           )}
@@ -476,7 +476,7 @@ const UploadStep = (props: {
             <div className="ant-upload-drag-icon">
               <h3 style={{ fontWeight: 700 }}>Upload your creation</h3>
             </div>
-            <p className="ant-upload-text" style={{ color: 'white' }}>
+            <p className="ant-upload-text" style={{ color: '#6d6d6d' }}>
               Drag and drop, or click to browse
             </p>
           </Dragger>
@@ -498,7 +498,7 @@ const UploadStep = (props: {
       >
         <Input
           disabled={!!mainFile}
-          placeholder="http://example.com/path/to/image"
+          placeholder={urlPlaceholder}
           value={customURL}
           onChange={ev => setCustomURL(ev.target.value)}
           onFocus={() => setCustomURLErr('')}
@@ -569,7 +569,7 @@ const UploadStep = (props: {
   );
 };
 
-export interface Royalty {
+interface Royalty {
   creatorKey: string;
   amount: number;
 }
@@ -630,9 +630,6 @@ const InfoStep = (props: {
     props.attributes,
   );
   const [form] = Form.useForm();
-  const [itemTitle, setItemTitle] = useState<String>(props.attributes.name);
-
-  const quantityTooltip = "If you don't set a quantity, the stock of your item will be unlimited and will apply to the Open Edition Auction. Instead if you set only 1 Supply your item will apply to the Limited Edition Auction.";
 
   useEffect(() => {
     setRoyalties(
@@ -652,42 +649,44 @@ const InfoStep = (props: {
         </p>
       </Row>
       <Row className="content-action" justify="space-around">
-        <Col style={{ maxWidth: "50%" }}>
+        <Col>
           {props.attributes.image && (
             <ArtCard
               image={image}
-              animationURL={animation_url}
+              animationURL={props.attributes.animation_url}
               category={props.attributes.properties?.category}
               name={props.attributes.name}
               symbol={props.attributes.symbol}
               small={true}
+              artView={!(props.files.length > 1)}
+              className="art-create-card"
             />
           )}
         </Col>
-        <Col className="section" style={{ minWidth: 300, maxWidth: "50%" }}>
+        <Col className="section" style={{ minWidth: 300 }}>
           <label className="action-field">
             <span className="field-title">Title</span>
             <Input
               autoFocus
               className="input"
               placeholder="Max 50 characters"
+              maxLength={50}
               allowClear
-              required
               value={props.attributes.name}
-              onChange={info => {
-                setItemTitle(info.target.value);
+              onChange={info =>
                 props.setAttributes({
                   ...props.attributes,
                   name: info.target.value,
                 })
-              }}
+              }
             />
           </label>
-          {/* <label className="action-field">
+          <label className="action-field">
             <span className="field-title">Symbol</span>
             <Input
               className="input"
               placeholder="Max 10 characters"
+              maxLength={10}
               allowClear
               value={props.attributes.symbol}
               onChange={info =>
@@ -697,13 +696,14 @@ const InfoStep = (props: {
                 })
               }
             />
-          </label> */}
+          </label>
 
           <label className="action-field">
             <span className="field-title">Description</span>
             <Input.TextArea
               className="input textarea"
               placeholder="Max 500 characters"
+              maxLength={500}
               value={props.attributes.description}
               onChange={info =>
                 props.setAttributes({
@@ -715,12 +715,7 @@ const InfoStep = (props: {
             />
           </label>
           <label className="action-field">
-            <span className="field-title" style={{ display: "flex" }}>
-                Maximum Supply
-              <Tooltip title={quantityTooltip} color="geekblue">
-                <InfoCircleOutlined style={{ marginLeft: "5px", color: "#32a3ff" }} />
-              </Tooltip>
-            </span>
+            <span className="field-title">Maximum Supply</span>
             <InputNumber
               placeholder="Quantity"
               onChange={(val: number) => {
@@ -790,7 +785,6 @@ const InfoStep = (props: {
         <Button
           type="primary"
           size="large"
-          disabled={itemTitle === ''}
           onClick={() => {
             form.validateFields().then(values => {
               const nftAttributes = values.attributes;
@@ -822,40 +816,14 @@ const InfoStep = (props: {
 const RoyaltiesSplitter = (props: {
   creators: Array<UserValue>;
   royalties: Array<Royalty>;
-  setCreators: Function;
   setRoyalties: Function;
   isShowErrors?: boolean;
 }) => {
-  const [creators, setCreators] = useState([...props.creators]);
-  const [royalties, setRoyalties] = useState([...props.royalties]);
-
-  useEffect(() => {
-    const tempCreators = props.creators.filter((creator, index, self) =>
-      index === self.findIndex((t) => (
-        t.value === creator.value
-      ))
-    );
-    const tempRoyalties = props.royalties.filter((creator, index, self) =>
-      index === self.findIndex((t) => (
-        t.creatorKey === creator.creatorKey
-      ))
-    );
-    let filteredRoyalties = tempRoyalties.filter(royalty =>
-      tempCreators.find((creator) => royalty.creatorKey === creator.key)
-      )
-    filteredRoyalties = filteredRoyalties.map(royalty => ({
-      creatorKey: royalty.creatorKey,
-      amount: Math.trunc(100 / filteredRoyalties.length),
-    }))
-    setRoyalties(filteredRoyalties)
-    setCreators(tempCreators);
-  }, [props.creators, props.royalties])
-  
   return (
     <Col>
       <Row gutter={[0, 24]}>
-        {creators.map((creator, idx) => {
-          const royalty = royalties.find(
+        {props.creators.map((creator, idx) => {
+          const royalty = props.royalties.find(
             royalty => royalty.creatorKey === creator.key,
           );
           if (!royalty) return null;
@@ -863,8 +831,8 @@ const RoyaltiesSplitter = (props: {
           const amt = royalty.amount;
 
           const handleChangeShare = (newAmt: number) => {
-            setRoyalties(
-              royalties.map(_royalty => {
+            props.setRoyalties(
+              props.royalties.map(_royalty => {
                 return {
                   ..._royalty,
                   amount:
@@ -900,14 +868,6 @@ const RoyaltiesSplitter = (props: {
                 <Col span={4} style={{ paddingLeft: 12 }}>
                   <Slider value={amt} onChange={handleChangeShare} />
                 </Col>
-                {idx >= 1 && (
-                  <Col span={1} style={{ paddingLeft: 12 }}>
-                    <MinusCircleOutlined onClick={() => {
-                      props.setCreators(creators.filter(oldCreator => oldCreator.key !== creator.key));
-                      props.setRoyalties(royalties.filter(oldRoyalty => oldRoyalty.creatorKey !== creator.key));
-                    }} />
-                  </Col>
-                )}
                 {props.isShowErrors && amt === 0 && (
                   <Col style={{ paddingLeft: 12 }}>
                     <Text type="danger">
@@ -939,30 +899,17 @@ const RoyaltiesStep = (props: {
   const [isShowErrors, setIsShowErrors] = useState<boolean>(false);
 
   useEffect(() => {
-    if (props.attributes) {
-      const saved = props.attributes.creators?.map((creator, index) => ({
-        key: index.toString(),
-        label: shortenAddress(creator.address),
-        value: creator.address,
-      }));
-      if (saved !== undefined) {
-        setCreators(saved);
-      }
-    }
-  }, [])
-
-  useEffect(() => {
     if (publicKey) {
       const key = publicKey.toBase58();
       setFixedCreators([
         {
-          key: '0',
+          key,
           label: shortenAddress(key),
           value: key,
         },
       ]);
     }
-  }, [connected]);
+  }, [connected, setCreators]);
 
   useEffect(() => {
     setRoyalties(
@@ -1024,7 +971,6 @@ const RoyaltiesStep = (props: {
             <RoyaltiesSplitter
               creators={[...fixedCreators, ...creators]}
               royalties={royalties}
-              setCreators={setCreators}
               setRoyalties={setRoyalties}
               isShowErrors={isShowErrors}
             />
@@ -1034,7 +980,7 @@ const RoyaltiesStep = (props: {
       <Row>
         <span
           onClick={() => setShowCreatorsModal(true)}
-          style={{ padding: 10, marginBottom: 10, cursor: "pointer" }}
+          style={{ padding: 10, marginBottom: 10 }}
         >
           <span
             style={{
@@ -1065,7 +1011,7 @@ const RoyaltiesStep = (props: {
         >
           <label className="action-field" style={{ width: '100%' }}>
             <span className="field-title">Creators</span>
-            <UserSearch royalties={royalties} setShowCreatorsModal={setShowCreatorsModal} setCreators={setCreators} />
+            <UserSearch setCreators={setCreators} />
           </label>
         </MetaplexModal>
       </Row>
@@ -1082,19 +1028,16 @@ const RoyaltiesStep = (props: {
           type="primary"
           size="large"
           onClick={() => {
-            console.log("royalties: ", royalties);
-            console.log("fixedCreators: ", fixedCreators);
-            console.log("creators: ", creators);
             // Find all royalties that are invalid (0)
             const zeroedRoyalties = royalties.filter(
               royalty => royalty.amount === 0,
             );
 
-            // if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
-            //   // Contains a share that is 0 or total shares does not equal 100, show errors.
-            //   setIsShowErrors(true);
-            //   return;
-            // }
+            if (zeroedRoyalties.length !== 0 || totalRoyaltyShares !== 100) {
+              // Contains a share that is 0 or total shares does not equal 100, show errors.
+              setIsShowErrors(true);
+              return;
+            }
 
             const creatorStructs: Creator[] = [
               ...fixedCreators,
@@ -1105,12 +1048,10 @@ const RoyaltiesStep = (props: {
                   address: c.value,
                   verified: c.value === publicKey?.toBase58(),
                   share:
-                    royalties.find(r => r.creatorKey === c.key)?.amount ||
+                    royalties.find(r => r.creatorKey === c.value)?.amount ||
                     Math.round(100 / royalties.length),
                 }),
             );
-
-            console.log("creatorStructs: ", creatorStructs)
 
             const share = creatorStructs.reduce(
               (acc, el) => (acc += el.share),
@@ -1189,11 +1130,13 @@ const LaunchStep = (props: {
           {props.attributes.image && (
             <ArtCard
               image={image}
-              animationURL={animation_url}
+              animationURL={props.attributes.animation_url}
               category={props.attributes.properties?.category}
               name={props.attributes.name}
               symbol={props.attributes.symbol}
               small={true}
+              artView={props.files[1]?.type === 'unknown'}
+              className="art-create-card"
             />
           )}
         </Col>
@@ -1206,7 +1149,13 @@ const LaunchStep = (props: {
             suffix="%"
           />
           {cost ? (
-            <AmountLabel title="Cost to Create" amount={cost.toFixed(5)} tokenInfo={useTokenList().tokenMap.get(WRAPPED_SOL_MINT.toString())} />
+            <AmountLabel
+              title="Cost to Create"
+              amount={cost.toFixed(5)}
+              tokenInfo={useTokenList().tokenMap.get(
+                WRAPPED_SOL_MINT.toString(),
+              )}
+            />
           ) : (
             <Spin />
           )}
@@ -1371,7 +1320,7 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/artworks/`)
+            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
           }
         >
           <span>See it in your collection</span>

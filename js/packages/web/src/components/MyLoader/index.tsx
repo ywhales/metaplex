@@ -7,8 +7,8 @@ export const CardLoader = () => (
     width={223}
     height={400}
     viewBox="0 0 250 400"
-    backgroundColor="#5969d4"
-    foregroundColor="#8797ff"
+    backgroundColor="#0c0c0c"
+    foregroundColor="#595959"
   >
     <rect x="9" y="0" rx="14" ry="14" width="232" height="240" />
     <circle cx="39" cy="296" r="15" />
@@ -18,7 +18,7 @@ export const CardLoader = () => (
   </ContentLoader>
 );
 
-export const ThreeDots = () => (
+export const ThreeDots = ({ style }: { style?: React.CSSProperties }) => (
   <ContentLoader
     viewBox="0 0 212 200"
     height={200}
@@ -27,6 +27,7 @@ export const ThreeDots = () => (
     style={{
       width: '100%',
       margin: 'auto',
+      ...style,
     }}
   >
     <circle cx="86" cy="100" r="8" />

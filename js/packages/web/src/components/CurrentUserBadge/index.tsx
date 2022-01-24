@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
+import { useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { Button, Popover, Select } from 'antd';
 import {
   ENDPOINTS,
   formatNumber,
@@ -12,15 +15,12 @@ import {
   useConnectionConfig,
   useNativeAccount,
   useWalletModal,
-  WRAPPED_SOL_MINT,
   useQuerySearch,
+  WRAPPED_SOL_MINT,
 } from '@oyster/common';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Button, Popover, Select } from 'antd';
 import { useMeta, useSolPrice } from '../../contexts';
-import { Link } from 'react-router-dom';
-import { TokenCircle } from '../Custom';
 import { useTokenList } from '../../contexts/tokenList';
+import { TokenCircle } from '../Custom';
 
 ('@solana/wallet-adapter-base');
 
@@ -215,7 +215,7 @@ export const CurrentUserBadge = (props: {
   }
   const balance = (account?.lamports || 0) / LAMPORTS_PER_SOL;
   const balanceInUSD = balance * solPrice;
-  const solMintInfo = useTokenList().tokenMap.get(WRAPPED_SOL_MINT.toString())
+  const solMintInfo = useTokenList().tokenMap.get(WRAPPED_SOL_MINT.toString());
   const iconStyle: React.CSSProperties = {
     display: 'flex',
     width: props.iconSize,
@@ -229,7 +229,7 @@ export const CurrentUserBadge = (props: {
   }
 
   let image = <Identicon address={publicKey?.toBase58()} style={iconStyle} />;
-  
+
   if (unknownWallet.image) {
     image = <img src={unknownWallet.image} style={iconStyle} />;
   }
@@ -266,7 +266,9 @@ export const CurrentUserBadge = (props: {
                     marginBottom: 10,
                   }}
                 >
-                  <TokenCircle iconFile={solMintInfo? solMintInfo.logoURI:""}/>
+                  <TokenCircle
+                    iconFile={solMintInfo ? solMintInfo.logoURI : ''}
+                  />
                   &nbsp;
                   <span
                     style={{

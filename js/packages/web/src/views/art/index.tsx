@@ -117,9 +117,9 @@ export const ArtView = () => {
                   {((art.seller_fee_basis_points || 0) / 100).toFixed(2)}%
                 </div>
               </Col>
-              {/* <Col span={12}>
+              <Col span={12}>
                 <ViewOn id={id} />
-              </Col> */}
+              </Col>
             </Row>
             <Row>
               <Col>

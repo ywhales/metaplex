@@ -1,5 +1,6 @@
 import {
   AUCTION_ID,
+  METADATA_PROGRAM_ID,
   METAPLEX_ID,
   StringPublicKey,
   toPublicKey,
@@ -9,7 +10,11 @@ import { MAX_WHITELISTED_CREATOR_SIZE, TokenAccount } from '../../models';
 import {
   getEdition,
   Metadata,
+  MAX_CREATOR_LEN,
   MAX_CREATOR_LIMIT,
+  MAX_NAME_LENGTH,
+  MAX_SYMBOL_LENGTH,
+  MAX_URI_LENGTH,
   decodeMetadata,
   getAuctionExtended,
   getMetadata,
@@ -218,6 +223,7 @@ export const pullYourMetadata = async (
   await postProcessMetadata(tempCache);
 
   console.log('-------->User metadata processing complete.');
+
   return tempCache;
 };
 
@@ -522,6 +528,8 @@ export const pullPage = async (
   connection: Connection,
   page: number,
   tempCache: MetaState,
+  walletKey?: PublicKey | null,
+  shouldFetchNftPacks?: boolean,
 ) => {
   const updateTemp = makeSetter(tempCache);
   const forEach =
@@ -667,11 +675,8 @@ export const pullPage = async (
       }
     }
 
-    const store = programIds().store;
-    if (store) {
-      await getPackSets({ connection, storeId: store }).then(
-        forEach(processPackSets),
-      );
+    if (shouldFetchNftPacks) {
+      await pullPacks(connection, tempCache, walletKey);
     }
 
     if (page == 0) {
@@ -684,6 +689,7 @@ export const pullPage = async (
         ],
       }).then(forEach(processMetaplexAccounts));
 
+      const store = programIds().store;
       if (store) {
         const storeAcc = await connection.getAccountInfo(store);
         if (storeAcc) {
@@ -916,8 +922,6 @@ export const loadAccounts = async (connection: Connection) => {
   const updateState = makeSetter(state);
   const forEachAccount = processingAccounts(updateState);
 
-  const STORE_ID = programIds().store;
-
   const forEach =
     (fn: ProcessAccountsFunc) => async (accounts: AccountAndPubkey[]) => {
       for (const account of accounts) {
@@ -949,17 +953,12 @@ export const loadAccounts = async (connection: Connection) => {
     pullMetadataByCreators(connection, state, updateState);
   const loadEditions = () =>
     pullEditions(connection, updateState, state, state.metadata);
-  const loadPacks = () =>
-    getPackSets({ connection, storeId: STORE_ID }).then(
-      forEachAccount(processPackSets),
-    );
 
   const loading = [
     loadCreators().then(loadMetadata).then(loadEditions),
     loadVaults(),
     loadAuctions(),
     loadMetaplex(),
-    loadPacks(),
   ];
 
   await Promise.all(loading);
@@ -1063,12 +1062,35 @@ const pullMetadataByCreators = (
       updater(prop, key, value);
     }
   };
-  // const forEachAccount = processingAccounts(setter);
+  const forEachAccount = processingAccounts(setter);
 
   const additionalPromises: Promise<void>[] = [];
   for (const creator of whitelistedCreators) {
     for (let i = 0; i < MAX_CREATOR_LIMIT; i++) {
-      const promise = []
+      const promise = getProgramAccounts(connection, METADATA_PROGRAM_ID, {
+        filters: [
+          {
+            memcmp: {
+              offset:
+                1 + // key
+                32 + // update auth
+                32 + // mint
+                4 + // name string length
+                MAX_NAME_LENGTH + // name
+                4 + // uri string length
+                MAX_URI_LENGTH + // uri
+                4 + // symbol string length
+                MAX_SYMBOL_LENGTH + // symbol
+                2 + // seller fee basis points
+                1 + // whether or not there is a creators vec
+                4 + // creators vec length
+                i * MAX_CREATOR_LEN,
+              bytes: creator.info.address,
+            },
+          },
+        ],
+      }).then(forEachAccount(processMetaData));
+      additionalPromises.push(promise);
     }
   }
 
@@ -1131,6 +1153,17 @@ export const makeSetter =
       state.storeIndexer = state.storeIndexer.sort((a, b) =>
         a.info.page.sub(b.info.page).toNumber(),
       );
+    } else if (prop === 'packCardsByPackSet') {
+      if (!state.packCardsByPackSet[key]) {
+        state.packCardsByPackSet[key] = [];
+      }
+
+      const alreadyHasInState = state.packCardsByPackSet[key].some(
+        ({ pubkey }) => pubkey === value.pubkey,
+      );
+      if (!alreadyHasInState) {
+        state.packCardsByPackSet[key].push(value);
+      }
     } else {
       state[prop][key] = value;
     }
@@ -1171,8 +1204,10 @@ export const metadataByMintUpdater = async (
     if (masterEditionKey) {
       state.metadataByMasterEdition[masterEditionKey] = metadata;
     }
+    if (!state.metadata.some(({ pubkey }) => metadata.pubkey === pubkey)) {
+      state.metadata.push(metadata);
+    }
     state.metadataByMint[key] = metadata;
-    if (!state.metadataByMint[key]) state.metadata.push(metadata);
   } else {
     delete state.metadataByMint[key];
   }
