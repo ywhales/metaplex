@@ -98,6 +98,8 @@ const VideoArtContent = ({
     }
   }, [active, playerApi]);
 
+  console.log("files: ", files);
+
   const likelyVideo = (files || []).filter((f, index, arr) => {
     if (typeof f !== 'string') {
       return false;
@@ -106,6 +108,9 @@ const VideoArtContent = ({
     // TODO: filter by fileType
     return arr.length >= 2 ? index === 1 : index === 0;
   })?.[0] as string;
+
+  console.log("likelyVideo: ", likelyVideo);
+  console.log("animationURL: ", animationURL);
 
   const content =
     likelyVideo &&
