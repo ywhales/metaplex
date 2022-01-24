@@ -89,7 +89,7 @@ export const ArtView = () => {
             style={{ paddingRight: '30px' }}
           >
             <ArtContent
-              style={{ width: '100%', height: 'auto', margin: '0 auto' }}
+              style={{ width: '100%', height: '500px', margin: '0 auto' }}
               height={300}
               width={300}
               className="artwork-image"
@@ -117,9 +117,9 @@ export const ArtView = () => {
                   {((art.seller_fee_basis_points || 0) / 100).toFixed(2)}%
                 </div>
               </Col>
-              <Col span={12}>
+              {/* <Col span={12}>
                 <ViewOn id={id} />
-              </Col>
+              </Col> */}
             </Row>
             <Row>
               <Col>

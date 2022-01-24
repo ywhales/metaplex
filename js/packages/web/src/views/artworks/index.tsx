@@ -1,8 +1,9 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
-import { Layout, Row, Col, Tabs, Dropdown, Menu } from 'antd';
+import { Layout, Row, Col, Tabs, Button } from 'antd';
 import { useMeta } from '../../contexts';
 import { CardLoader } from '../../components/MyLoader';
+import { Spinner } from '../../components/Loader';
 
 import { ArtworkViewState } from './types';
 import { useItems } from './hooks/useItems';
@@ -25,6 +26,7 @@ export const ArtworksView = () => {
   } = useMeta();
   const { userAccounts } = useUserAccounts();
 
+  const [loading, setLoading] = useState(true);
   const [activeKey, setActiveKey] = useState(ArtworkViewState.Metaplex);
 
   const userItems = useItems({ activeKey });
@@ -42,6 +44,10 @@ export const ArtworksView = () => {
       setActiveKey(ArtworkViewState.Metaplex);
     }
   }, [connected, setActiveKey]);
+
+  useEffect(() => {
+    isLoading ? setLoading(true) : setLoading(false);
+  }, [isLoading])
 
   const isDataLoading = isLoading || isFetching;
 
@@ -62,26 +68,24 @@ export const ArtworksView = () => {
   );
 
   const refreshButton = connected && storeIndexer.length !== 0 && (
-    <Dropdown.Button
-      className="refresh-button padding0"
-      onClick={() => pullItemsPage(userAccounts)}
-      icon={<DownOutlined />}
-      overlayClassName="refresh-overlay"
-      overlay={
-        <Menu className="gray-dropdown">
-          <Menu.Item onClick={() => pullAllMetadata()}>
-            Load All Metadata
-          </Menu.Item>
-        </Menu>
-      }
-    >
-      Refresh
-    </Dropdown.Button>
+    <>
+      {isLoading || isFetching ? (
+        <Button>
+          Loading ...
+        </Button>
+      ) : (
+        <Button onClick={() => pullAllMetadata()}>
+          Load All Metadata
+        </Button>
+      )}
+      
+    </>
+    
   );
 
   return (
     <Layout style={{ margin: 0, marginTop: 30 }}>
-      <Content style={{ display: 'flex', flexWrap: 'wrap' }}>
+      <Content className="items-content">
         <Col style={{ width: '100%', marginTop: 10 }}>
           <Row>
             <Tabs

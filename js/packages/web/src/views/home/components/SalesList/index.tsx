@@ -1,12 +1,13 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Col, Layout, Row, Tabs } from 'antd';
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { useMeta } from '../../../../contexts';
 import { CardLoader } from '../../../../components/MyLoader';
 import { Banner } from '../../../../components/Banner';
 import { HowToBuyModal } from '../../../../components/HowToBuyModal';
+import { Spinner } from '../../../../components/Loader';
 
 import { useAuctionsList } from './hooks/useAuctionsList';
 import { AuctionRenderCard } from '../../../../components/AuctionRenderCard';
@@ -19,6 +20,7 @@ export enum LiveAuctionViewState {
   Participated = '1',
   Ended = '2',
   Resale = '3',
+  Own = '4',
 }
 
 export const SalesListView = () => {
@@ -26,19 +28,26 @@ export const SalesListView = () => {
   const { isLoading } = useMeta();
   const { connected } = useWallet();
   const { auctions, hasResaleAuctions } = useAuctionsList(activeKey);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoading(false);
+    }
+  }, [isLoading])
 
   return (
     <>
       <Banner
-        src="/main-banner.svg"
-        headingText="The amazing world of Metaplex."
+        src={'/main-banner.png'}
+        headingText="Welcome to YWhales Martketplace"
         subHeadingText="Buy exclusive Metaplex NFTs."
         actionComponent={<HowToBuyModal buttonClassName="secondary-btn" />}
         useBannerBg
       />
       <Layout>
         <Content style={{ display: 'flex', flexWrap: 'wrap' }}>
-          <Col style={{ width: '100%', marginTop: 32 }}>
+          <Col style={{ width: '100%', marginTop: 32, overflow: "hidden" }}>
             <Row>
               <Tabs
                 activeKey={activeKey}
@@ -50,19 +59,28 @@ export const SalesListView = () => {
                       <span className="live"></span> Live
                     </>
                   }
+                  disabled={!connected}
                   key={LiveAuctionViewState.All}
                 ></TabPane>
                 {hasResaleAuctions && (
                   <TabPane
                     tab="Secondary Marketplace"
+                    disabled={!connected}
                     key={LiveAuctionViewState.Resale}
                   ></TabPane>
                 )}
-                <TabPane tab="Ended" key={LiveAuctionViewState.Ended}></TabPane>
+                <TabPane tab="Ended" disabled={!connected} key={LiveAuctionViewState.Ended}></TabPane>
                 {connected && (
                   <TabPane
                     tab="Participated"
+                    disabled={!connected}
                     key={LiveAuctionViewState.Participated}
+                  ></TabPane>
+                )}
+                {connected && (
+                  <TabPane
+                    tab="My Live Auctions"
+                    key={LiveAuctionViewState.Own}
                   ></TabPane>
                 )}
               </Tabs>
@@ -71,7 +89,7 @@ export const SalesListView = () => {
               <div className="artwork-grid">
                 {isLoading &&
                   [...Array(10)].map((_, idx) => <CardLoader key={idx} />)}
-                {!isLoading &&
+                {!loading && connected &&
                   auctions.map(auction => (
                     <Link
                       key={auction.auction.pubkey}

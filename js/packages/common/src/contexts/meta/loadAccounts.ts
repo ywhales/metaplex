@@ -1067,30 +1067,7 @@ const pullMetadataByCreators = (
   const additionalPromises: Promise<void>[] = [];
   for (const creator of whitelistedCreators) {
     for (let i = 0; i < MAX_CREATOR_LIMIT; i++) {
-      const promise = getProgramAccounts(connection, METADATA_PROGRAM_ID, {
-        filters: [
-          {
-            memcmp: {
-              offset:
-                1 + // key
-                32 + // update auth
-                32 + // mint
-                4 + // name string length
-                MAX_NAME_LENGTH + // name
-                4 + // uri string length
-                MAX_URI_LENGTH + // uri
-                4 + // symbol string length
-                MAX_SYMBOL_LENGTH + // symbol
-                2 + // seller fee basis points
-                1 + // whether or not there is a creators vec
-                4 + // creators vec length
-                i * MAX_CREATOR_LEN,
-              bytes: creator.info.address,
-            },
-          },
-        ],
-      }).then(forEachAccount(processMetaData));
-      additionalPromises.push(promise);
+      const promise = []
     }
   }
 

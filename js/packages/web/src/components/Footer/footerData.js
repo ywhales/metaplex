@@ -5,15 +5,15 @@ export const footerConf = {
     'Join our mailing list for updates about our artists and more.',
   components: [
     {
-      title: 'Company',
+      title: 'YWhales',
       links: [
         {
           label: 'About',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Terms of service',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
       ],
     },
@@ -22,19 +22,19 @@ export const footerConf = {
       links: [
         {
           label: 'FAQ',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Support',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Privacy policy',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Your purchases',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
       ],
     },
@@ -43,15 +43,15 @@ export const footerConf = {
       links: [
         {
           label: 'Instagram',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Twitter',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
         {
           label: 'Discord',
-          url: 'www.solana.com',
+          url: 'https://www.ywhales.com',
         },
       ],
     },

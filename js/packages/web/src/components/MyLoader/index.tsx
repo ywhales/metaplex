@@ -7,8 +7,8 @@ export const CardLoader = () => (
     width={223}
     height={400}
     viewBox="0 0 250 400"
-    backgroundColor="#0c0c0c"
-    foregroundColor="#595959"
+    backgroundColor="#5969d4"
+    foregroundColor="#8797ff"
   >
     <rect x="9" y="0" rx="14" ry="14" width="232" height="240" />
     <circle cx="39" cy="296" r="15" />

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Row, Button, Modal, ButtonProps } from 'antd';
+import { Row, Button, Modal, ButtonProps, Tooltip } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { useUserArts } from '../../hooks';
 import { SafetyDepositDraft } from '../../actions/createAuctionManager';
 import AuctionItemCard from './AuctionItemCard';
@@ -40,6 +41,8 @@ export const ArtSelector = (props: ArtSelectorProps) => {
     close();
   };
 
+  const missingItemsTooltip = `If for some reason you can't find all your items here, you should go to MyItems and click "Load all metadata" to load all your items.`;
+
   return (
     <>
       <div className="artwork-grid">
@@ -74,10 +77,15 @@ export const ArtSelector = (props: ArtSelectorProps) => {
         onOk={confirm}
         width={1100}
         footer={null}
-        className={'modalp-40'}
+        className={'modalp-40 big-modal'}
       >
         <Row className="call-to-action" style={{ marginBottom: 0 }}>
-          <h2>Select the NFT you want to sell</h2>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5em" }}>
+            <h2 style={{ marginBottom: 0 }}>Select the NFT you want to sell</h2>
+            <Tooltip title={missingItemsTooltip} color="geekblue">
+              <InfoCircleOutlined style={{ fontSize: "1.3rem", marginLeft: "5px", color: "#32a3ff" }} />
+            </Tooltip>
+          </div>
           <p style={{ fontSize: '1.2rem' }}>
             Select the NFT that you want to sell copy/copies of.
           </p>

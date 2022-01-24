@@ -10,8 +10,19 @@
     padding: 0 !important;
   }
 }
+
+.items-content {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: hidden !important;
+}
+
 .section {
   padding: 1px;
+}
+
+.right-section {
+  padding-left: 2rem;
 }
 
 .action-btn:disabled {
@@ -75,7 +86,7 @@
   }
 
   p {
-    color: #6d6d6d;
+    color: white;
     font-style: normal;
     font-size: 20px;
   }
@@ -115,10 +126,13 @@
 }
 
 .input {
-  background: #282828;
+  background: rgba(0, 0, 0, 0.45) !important;
   border-radius: 8px;
   padding: 10px;
   border-width: 0;
+  .ant-input {
+    background: transparent !important;
+  }
 }
 
 .textarea {
@@ -129,7 +143,7 @@
   height: 80px;
   width: 450px;
   border-radius: 8px;
-  background-color: #1d1d1d;
+  background-color: rgba(0, 0, 0, 0.45) !important;
   border-width: 0;
   margin-bottom: 20px;
   text-align: left;
@@ -140,13 +154,13 @@
   align-items: center;
   padding: 20px 24px;
 
-  background: linear-gradient(270deg, #616774 7.29%, #403f4c 100%);
+  background: #403f49;
   max-width: 100%;
   white-space: normal;
 }
 
 .type-btn:hover {
-  background: linear-gradient(270deg, #616774 7.29%, #403f4c 100%) !important;
+  background-color: rgba(0, 0, 0, 0.30) !important;
 }
 .type-btn:disabled {
   pointer-events: none;
@@ -279,7 +293,7 @@ h2 {
   .field-info {
     text-align: left;
 
-    color: rgba(255, 255, 255, 0.5);
+    color: white;
     margin-bottom: 12px;
   }
 
@@ -373,7 +387,7 @@ h2 {
 }
 
 .ant-slider-step {
-  background: linear-gradient(270deg, #616774 7.29%, #403f4c 100%);
+  background: #3a3e47;
   border-radius: 4px;
   height: 10px;
 }
@@ -392,7 +406,7 @@ h2 {
 }
 
 .radio-subtitle {
-  color: dimgray;
+  color: white;
   font-size: 0.8rem;
   margin-bottom: 10px;
 }
@@ -405,3 +419,7 @@ h2 {
     background-color: #2a2a2a !important;
   }
 }
+
+.ant-picker-cell-in-view, .ant-picker-time-panel-cell-inner {
+  color: black !important;
+} 
