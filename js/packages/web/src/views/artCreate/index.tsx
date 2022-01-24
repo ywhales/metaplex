@@ -259,7 +259,7 @@ const CategoryStep = (props: {
             >
               <div>
                 <div>Image</div>
-                <div className="type-btn-description">JPG, PNG, GIF</div>
+                <div className="type-btn-description">JPG, PNG, GIF, SVG</div>
               </div>
             </Button>
           </Row>
@@ -271,7 +271,7 @@ const CategoryStep = (props: {
             >
               <div>
                 <div>Video</div>
-                <div className="type-btn-description">MP4, MOV</div>
+                <div className="type-btn-description">MP4, MOV, WEBM</div>
               </div>
             </Button>
           </Row>
@@ -299,7 +299,7 @@ const CategoryStep = (props: {
               </div>
             </Button>
           </Row>
-          <Row>
+         {/*  <Row>
             <Button
               className="type-btn"
               size="large"
@@ -310,7 +310,7 @@ const CategoryStep = (props: {
                 <div className="type-btn-description">HTML</div>
               </div>
             </Button>
-          </Row>
+          </Row> */}
         </Col>
       </Row>
     </>
@@ -349,13 +349,13 @@ const UploadStep = (props: {
       case MetadataCategory.Audio:
         return 'Upload your audio creation (MP3, FLAC, WAV)';
       case MetadataCategory.Image:
-        return 'Upload your image creation (PNG, JPG, GIF)';
+        return 'Upload your image creation (PNG, JPG, GIF, SVG)';
       case MetadataCategory.Video:
-        return 'Upload your video creation (MP4, MOV, GLB)';
+        return 'Upload your video creation (MP4, MOV, WEBM)';
       case MetadataCategory.VR:
         return 'Upload your AR/VR creation (GLB)';
-      case MetadataCategory.HTML:
-        return 'Upload your HTML File (HTML)';
+      /* case MetadataCategory.HTML:
+        return 'Upload your HTML File (HTML)'; */
       default:
         return 'Please go back and choose a category';
     }
@@ -366,13 +366,13 @@ const UploadStep = (props: {
       case MetadataCategory.Audio:
         return '.mp3,.flac,.wav';
       case MetadataCategory.Image:
-        return '.png,.jpg,.gif';
+        return '.png,.jpg,.gif, .svg';
       case MetadataCategory.Video:
         return '.mp4,.mov,.webm';
       case MetadataCategory.VR:
         return '.glb';
-      case MetadataCategory.HTML:
-        return '.html';
+/*       case MetadataCategory.HTML:
+        return '.html'; */
       default:
         return '';
     }
@@ -399,7 +399,7 @@ const UploadStep = (props: {
       <Row className="content-action">
         <h3>Upload a cover image (PNG, JPG, GIF, SVG)</h3>
         <Dragger
-          accept=".png,.jpg,.gif,.mp4,.svg"
+          accept=".png,.jpg,.gif,.svg"
           style={{ padding: 20, background: 'rgba(255, 255, 255, 0.08)' }}
           multiple={false}
           onRemove={() => {

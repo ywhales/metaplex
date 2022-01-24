@@ -337,7 +337,7 @@ export const ArtContent = ({
   }
 
   const content =
-    categoryState === 'video' ? (
+    categoryState === 'video' || categoryState === 'audio' ? (
       <VideoArtContent
         className={className}
         style={style}
