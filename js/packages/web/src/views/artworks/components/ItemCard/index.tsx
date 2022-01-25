@@ -8,7 +8,7 @@ import { isMetadata, isPack } from '../../utils';
 
 const ART_CARD_SIZE = 250;
 
-const ItemCard = ({ item }: { item: Item }): ReactElement => {
+const ItemCard = ({ item, onItems }: { item: Item, onItems: boolean }): ReactElement => {
   if (isPack(item)) {
     const {
       pubkey,
@@ -47,6 +47,7 @@ const ItemCard = ({ item }: { item: Item }): ReactElement => {
         preview={false}
         height={ART_CARD_SIZE}
         width={ART_CARD_SIZE}
+        onItems={onItems}
         artView
       />
     </Link>

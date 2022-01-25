@@ -62,7 +62,7 @@ export const ArtworksView = () => {
             ? item.provingProcessKey
             : item.edition?.pubkey || item.metadata.pubkey;
 
-          return <ItemCard item={item} key={pubkey} />;
+          return <ItemCard onItems={true} item={item} key={pubkey} />;
         })}
     </div>
   );

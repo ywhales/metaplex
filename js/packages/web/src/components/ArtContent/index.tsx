@@ -273,6 +273,7 @@ export const ArtContent = ({
   animationURL,
   animation,
   onCreate,
+  onItems,
   files,
   artView,
 }: {
@@ -290,6 +291,7 @@ export const ArtContent = ({
   animationURL?: string;
   animation?: object;
   onCreate?: boolean;
+  onItems?: boolean;
   files?: (MetadataFile | string)[];
   artView?: boolean;
 }) => {
@@ -385,12 +387,21 @@ export const ArtContent = ({
         style={style}
       />
     );
+  
+  const contentOnItems = onItems && (
+    <CachedImageContent
+        uri={uriState}
+        className={className}
+        preview={preview}
+        style={style}
+      />
+  )
 
   return (
     <ArtContentWrapper
       ref={ref as any}
     >
-      {content}
+      {!onItems ? content : contentOnItems}
     </ArtContentWrapper>
   );
 };
