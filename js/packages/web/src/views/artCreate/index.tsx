@@ -169,6 +169,10 @@ export const ArtCreateView = () => {
         <Col span={24} {...(stepsVisible ? { md: 20 } : { md: 24 })}>
           {step === 0 && (
             <CategoryStep
+              attributes={attributes}
+              setAttributes={setAttributes}
+              files={files}
+              setFiles={setFiles}
               confirm={(category: MetadataCategory) => {
                 setAttributes({
                   ...attributes,
@@ -236,10 +240,38 @@ export const ArtCreateView = () => {
   );
 };
 
+const baseAttributes: IMetadataExtension = {
+  name: "",
+  symbol: "",
+  creators: [],
+  description: "",
+  image: "",
+  animation_url: "",
+  attributes: [],
+  external_url: "",
+  seller_fee_basis_points: 0,
+  properties: {
+    files: [],
+    category: MetadataCategory["image"],
+    maxSupply: 0,
+  }
+}
+
 const CategoryStep = (props: {
+  attributes: IMetadataExtension;
+  setAttributes: (attr: IMetadataExtension) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
   confirm: (category: MetadataCategory) => void;
 }) => {
+  console.log("PROPS: ", props)
   const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    props.setFiles([]);
+    props.setAttributes(baseAttributes);
+  }, []);
+  
   return (
     <>
       <Row className="call-to-action">
@@ -652,7 +684,6 @@ const InfoStep = (props: {
 
   useEffect(() => {
     const animationBlob = props.files[1] as Blob;
-    console.log("animationBlob: ", animationBlob);
     if (props.files[1]?.name.includes('.glb')) {
       setIsGlb(true);
       setRenderURL(URL.createObjectURL(animationBlob));
@@ -729,7 +760,7 @@ const InfoStep = (props: {
               }}
             />
           </label>
-          <label className="action-field">
+          {/* <label className="action-field">
             <span className="field-title">Symbol</span>
             <Input
               className="input"
@@ -744,7 +775,7 @@ const InfoStep = (props: {
                 })
               }
             />
-          </label>
+          </label> */}
 
           <label className="action-field">
             <span className="field-title">Description</span>
@@ -1230,7 +1261,6 @@ const LaunchStep = (props: {
 
   useEffect(() => {
     const animationBlob = props.files[1] as Blob;
-    console.log("animationBlob: ", animationBlob);
     if (props.files[1]?.name.includes('.glb')) {
       setIsGlb(true);
       setRenderURL(URL.createObjectURL(animationBlob));
