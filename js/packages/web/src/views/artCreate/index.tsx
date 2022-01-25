@@ -332,7 +332,7 @@ const UploadStep = (props: {
 
   const [customURL, setCustomURL] = useState<string>('');
   const [customURLErr, setCustomURLErr] = useState<string>('');
-  const disableContinue = !(coverFile || (!customURLErr && !!customURL));
+  const disableContinue = !((coverFile && mainFile) || (!customURLErr && !!customURL));
 
   useEffect(() => {
     props.setAttributes({
