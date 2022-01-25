@@ -264,7 +264,6 @@ const CategoryStep = (props: {
   setFiles: (files: File[]) => void;
   confirm: (category: MetadataCategory) => void;
 }) => {
-  console.log("PROPS: ", props)
   const { width } = useWindowDimensions();
 
   useEffect(() => {
@@ -1161,9 +1160,6 @@ const RoyaltiesStep = (props: {
           type="primary"
           size="large"
           onClick={() => {
-            console.log("royalties: ", royalties);
-            console.log("fixedCreators: ", fixedCreators);
-            console.log("creators: ", creators);
             // Find all royalties that are invalid (0)
             const zeroedRoyalties = royalties.filter(
               royalty => royalty.amount === 0,
@@ -1188,8 +1184,6 @@ const RoyaltiesStep = (props: {
                     Math.round(100 / royalties.length),
                 }),
             );
-
-            console.log("creatorStructs: ", creatorStructs)
 
             const share = creatorStructs.reduce(
               (acc, el) => (acc += el.share),
