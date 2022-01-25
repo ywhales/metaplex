@@ -261,6 +261,11 @@ const ArtContentWrapper = styled.div`
   height: 100%;
 `;
 
+interface fileContent {
+  type?: string;
+  uri?: string;
+}
+
 export const ArtContent = ({
   category,
   className,
@@ -322,8 +327,14 @@ export const ArtContent = ({
 
   useEffect(() => {
     if (pubkey && data) {
+      const files = data.properties.files;
       setUriState(data.image);
-      setAnimationURLState(data.animation_url);
+      if (files) {
+        const innerFile = files as fileContent[];
+        setAnimationURLState(data.animation_url?.includes(".glb") ? innerFile[1].uri : data.animation_url);
+      }else {
+        setAnimationURLState(data.animation_url);
+      }      
     }
 
     if (pubkey && data?.properties) {
