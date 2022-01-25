@@ -26,18 +26,18 @@ const MeshArtContent = ({
     files && files.length > 0 && typeof files[0] === 'string'
       ? files[0]
       : animationUrl;
-  const { isLoading } = useCachedImage(renderURL || '', true);
+  // const { isLoading } = useCachedImage(renderURL || '', true);
 
-  if (isLoading) {
-    return (
-      <CachedImageContent
-        uri={uri}
-        className={className}
-        preview={false}
-        style={{ width: '100%', ...style }}
-      />
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <CachedImageContent
+  //       uri={uri}
+  //       className={className}
+  //       preview={false}
+  //       style={{ width: '100%', ...style }}
+  //     />
+  //   );
+  // }
 
   return <MeshViewer url={renderURL} className={className} style={style} />;
 };
@@ -73,6 +73,8 @@ const VideoArtContent = ({
   style,
   files,
   uri,
+  animation,
+  onCreate,
   animationURL,
   active,
 }: {
@@ -80,10 +82,13 @@ const VideoArtContent = ({
   style?: React.CSSProperties;
   files?: (MetadataFile | string)[];
   uri?: string;
+  animation?: object;
+  onCreate?: boolean;
   animationURL?: string;
   active?: boolean;
 }) => {
   const [playerApi, setPlayerApi] = useState<StreamPlayerApi>();
+  const [videoFilePath, setVideoFilePath] = useState("");
 
   const playerRef = useCallback(
     ref => {
@@ -93,12 +98,18 @@ const VideoArtContent = ({
   );
 
   useEffect(() => {
+    if (onCreate) {
+      const animationBlob = animation as Blob;
+      setVideoFilePath(URL.createObjectURL(animationBlob));
+    }
+  }, [animation]);
+  
+
+  useEffect(() => {
     if (playerApi) {
       playerApi.currentTime = 0;
     }
   }, [active, playerApi]);
-
-  console.log("files: ", files);
 
   const likelyVideo = (files || []).filter((f, index, arr) => {
     if (typeof f !== 'string') {
@@ -109,8 +120,6 @@ const VideoArtContent = ({
     return arr.length >= 2 ? index === 1 : index === 0;
   })?.[0] as string;
 
-  console.log("likelyVideo: ", likelyVideo);
-  console.log("animationURL: ", animationURL);
 
   const content =
     likelyVideo &&
@@ -160,8 +169,19 @@ const VideoArtContent = ({
         </video>
       </div>
     );
+  
+  const contentOnCreation =
+    likelyVideo ? (
+      <div>
+        <video src={videoFilePath} controls={true} poster={uri}></video>
+      </div>
+    ) : (
+      <div>
+        <video src={videoFilePath} controls={true} poster={uri}></video>
+      </div>
+    );
 
-  return content;
+  return onCreate ? contentOnCreation : content;
 };
 
 const HTMLWrapper = styled.div`
@@ -251,6 +271,8 @@ export const ArtContent = ({
   pubkey,
   uri,
   animationURL,
+  animation,
+  onCreate,
   files,
   artView,
 }: {
@@ -266,6 +288,8 @@ export const ArtContent = ({
   pubkey?: PublicKey | string;
   uri?: string;
   animationURL?: string;
+  animation?: object;
+  onCreate?: boolean;
   files?: (MetadataFile | string)[];
   artView?: boolean;
 }) => {
@@ -349,6 +373,8 @@ export const ArtContent = ({
         files={filesState}
         uri={uriState}
         animationURL={animationURLState}
+        animation={animation}
+        onCreate={onCreate}
         active={active}
       />
     ) : (

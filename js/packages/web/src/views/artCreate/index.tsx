@@ -659,6 +659,8 @@ const InfoStep = (props: {
             <ArtCard
               image={image}
               animationURL={props.attributes.animation_url}
+              animationObject={props.files[1]}
+              onCreate={true}
               category={props.attributes.properties?.category}
               name={props.attributes.name}
               symbol={props.attributes.symbol}
@@ -1386,7 +1388,8 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            // history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            history.push('/artworks/')
           }
         >
           <span>See it in your collection</span>
