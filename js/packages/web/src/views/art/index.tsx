@@ -89,7 +89,7 @@ export const ArtView = () => {
             style={{ paddingRight: '30px' }}
           >
             <ArtContent
-              style={{ width: '100%', height: 'auto', margin: '0 auto' }}
+              style={{ width: '100%', height: '500px', margin: '0 auto' }}
               height={300}
               width={300}
               className="artwork-image"

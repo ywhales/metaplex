@@ -4,7 +4,7 @@ import {
   createMetadata,
   programIds,
   notify,
-  ENV,
+  ENDPOINT_NAME,
   updateMetadata,
   createMasterEdition,
   sendTransactionWithRetry,
@@ -17,7 +17,7 @@ import {
   Attribute,
   getAssetCostToStore,
   FileOrString,
-  MetadataFile,
+  MetadataFile
 } from '@oyster/common';
 import React, { Dispatch, SetStateAction } from 'react';
 import { MintLayout, Token } from '@solana/spl-token';
@@ -36,8 +36,6 @@ import Policy from "react-aws-s3-typescript/dist/Policy";
 import GetUrl from "react-aws-s3-typescript/dist/Url";
 import {dateYMD, xAmzDate} from 'react-aws-s3-typescript/dist/Date';
 import Signature from 'react-aws-s3-typescript/dist/Signature';
-
-
 
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 const RESERVED_METADATA = 'metadata.json';
@@ -100,7 +98,6 @@ export async function awsUpload(
     s3Url: s3BucketUrlEnv,
   }
 
-
   const urlFiles: UploadResponse[] = [];
 
   for (const file of files)
@@ -129,7 +126,7 @@ function getRandomString(length) {
 export const mintNFT = async (
   connection: Connection,
   wallet: WalletSigner | undefined,
-  env: ENV,
+  endpoint: ENDPOINT_NAME,
   files: File[],
   metadata: {
     name: string;
@@ -284,7 +281,6 @@ export const mintNFT = async (
       type: 'error',
     });
   }
-
 
   // Force wait for max confirmations
   // await connection.confirmTransaction(txid, 'max');

@@ -19,11 +19,10 @@ export const UserSearch = (props: { royalties: Array<Royalty> , setCreators: Fun
   useEffect(() => {
     setActive(selected !== undefined && selected.length > 0 ? true : false);
   }, [selected])
-
   function onChange(value) {
     setSelected(value);
   }
-  
+
   function onFocus() {
     const mapped = Object.keys(whitelistedCreatorsByCreator);
     const opts = props.royalties.map(item => item.creatorKey);

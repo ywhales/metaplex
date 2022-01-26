@@ -12,6 +12,7 @@ import {
   CurrentUserBadgeMobile,
 } from '../CurrentUserBadge';
 import { ConnectButton, ENDPOINTS, useConnectionConfig } from '@oyster/common';
+import { MobileNavbar } from '../MobileNavbar';
 
 const getDefaultLinkActions = (connected: boolean) => {
   return [
@@ -41,7 +42,7 @@ const DefaultActions = ({ vertical = false }: { vertical?: boolean }) => {
   );
 };
 
-const MetaplexMenu = () => {
+export const MetaplexMenu = () => {
   const { width } = useWindowDimensions();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const { connected } = useWallet();
@@ -109,7 +110,7 @@ const MetaplexMenu = () => {
 export const LogoLink = () => {
   return (
     <Link to={`/`}>
-      <img style={{ height: "60px", padding: 1}} src={'/metaplex-logo.png'} />
+      <img style={{ height: "60px", padding: 1, paddingLeft: "2rem" }} src={'/metaplex-logo.png'} />
     </Link>
   );
 };
@@ -119,10 +120,7 @@ export const AppBar = () => {
   const { connected } = useWallet();
   return (
     <>
-      <div id="mobile-navbar">
-        <LogoLink />
-        <MetaplexMenu />
-      </div>
+      <MobileNavbar />
       <div id="desktop-navbar">
         <div className="app-left">
           <LogoLink />
@@ -131,14 +129,14 @@ export const AppBar = () => {
           <MetaplexMenu />
         </div>
         <div className="app-right">
-          {ENDPOINTS.filter( endp => endp.endpoint === endpoint)
-            .map( ({ name, endpoint }) => (
-              <Tooltip title={name} key={endpoint} color="geekblue">
+          {ENDPOINTS.filter( endp => endp.url === endpoint.url)
+            .map( ({ name, url }) => (
+              <Tooltip title={name} key={url} color="geekblue">
                 <div className="selected-network">
                   {name.charAt(0).toUpperCase()}
                 </div>
               </Tooltip>
-            ))}
+          ))}
           {!connected && (
             <HowToBuyModal buttonClassName="modal-button-default" />
           )}

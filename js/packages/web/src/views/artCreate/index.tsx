@@ -15,6 +15,7 @@ import {
   Space,
   Card,
   Tooltip,
+  Switch
 } from 'antd';
 import { ArtCard } from './../../components/ArtCard';
 import { UserSearch, UserValue } from './../../components/UserSearch';
@@ -24,7 +25,6 @@ import {
   MAX_METADATA_LEN,
   useConnection,
   IMetadataExtension,
-  Attribute,
   MetadataCategory,
   useConnectionConfig,
   Creator,
@@ -35,7 +35,7 @@ import {
   StringPublicKey,
   WRAPPED_SOL_MINT,
   getAssetCostToStore,
-  LAMPORT_MULTIPLIER
+  LAMPORT_MULTIPLIER,
 } from '@oyster/common';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
@@ -43,6 +43,7 @@ import { MintLayout } from '@solana/spl-token';
 import { useHistory, useParams } from 'react-router-dom';
 import { cleanName, getLast } from '../../utils/utils';
 import { AmountLabel } from '../../components/AmountLabel';
+import { MeshViewer } from '../../components/MeshViewer';
 import useWindowDimensions from '../../utils/layout';
 import {
   LoadingOutlined,
@@ -58,7 +59,7 @@ const { Text } = Typography;
 
 export const ArtCreateView = () => {
   const connection = useConnection();
-  const { env } = useConnectionConfig();
+  const { endpoint } = useConnectionConfig();
   const wallet = useWallet();
   const [alertMessage, setAlertMessage] = useState<string>();
   const { step_param }: { step_param: string } = useParams();
@@ -125,7 +126,7 @@ export const ArtCreateView = () => {
       const _nft = await mintNFT(
         connection,
         wallet,
-        env,
+        endpoint.name,
         files,
         metadata,
         setNFTcreateProgress,
@@ -168,6 +169,10 @@ export const ArtCreateView = () => {
         <Col span={24} {...(stepsVisible ? { md: 20 } : { md: 24 })}>
           {step === 0 && (
             <CategoryStep
+              attributes={attributes}
+              setAttributes={setAttributes}
+              files={files}
+              setFiles={setFiles}
               confirm={(category: MetadataCategory) => {
                 setAttributes({
                   ...attributes,
@@ -235,17 +240,46 @@ export const ArtCreateView = () => {
   );
 };
 
+const baseAttributes: IMetadataExtension = {
+  name: "",
+  symbol: "",
+  creators: [],
+  description: "",
+  image: "",
+  animation_url: "",
+  attributes: [],
+  external_url: "",
+  seller_fee_basis_points: 0,
+  properties: {
+    files: [],
+    category: MetadataCategory["image"],
+    maxSupply: 0,
+  }
+}
+
 const CategoryStep = (props: {
+  attributes: IMetadataExtension;
+  setAttributes: (attr: IMetadataExtension) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
   confirm: (category: MetadataCategory) => void;
 }) => {
   const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    props.setFiles([]);
+    props.setAttributes(baseAttributes);
+  }, []);
+  
   return (
     <>
       <Row className="call-to-action">
         <h2>Create a new item</h2>
         <p>
           First time creating on Metaplex?{' '}
-          <a href="#">Read our creators’ guide.</a>
+          <a href="https://docs.metaplex.com/create-store/sell" target="_blank" rel="noreferrer">
+            Read our creators’ guide.
+          </a>
         </p>
       </Row>
       <Row justify={width < 768 ? 'center' : 'start'}>
@@ -258,7 +292,7 @@ const CategoryStep = (props: {
             >
               <div>
                 <div>Image</div>
-                <div className="type-btn-description">JPG, PNG, GIF</div>
+                <div className="type-btn-description">JPG, PNG, GIF, SVG</div>
               </div>
             </Button>
           </Row>
@@ -270,7 +304,7 @@ const CategoryStep = (props: {
             >
               <div>
                 <div>Video</div>
-                <div className="type-btn-description">MP4, MOV</div>
+                <div className="type-btn-description">MP4, MOV, WEBM</div>
               </div>
             </Button>
           </Row>
@@ -298,7 +332,7 @@ const CategoryStep = (props: {
               </div>
             </Button>
           </Row>
-          <Row>
+         {/*  <Row>
             <Button
               className="type-btn"
               size="large"
@@ -309,7 +343,7 @@ const CategoryStep = (props: {
                 <div className="type-btn-description">HTML</div>
               </div>
             </Button>
-          </Row>
+          </Row> */}
         </Col>
       </Row>
     </>
@@ -331,7 +365,7 @@ const UploadStep = (props: {
 
   const [customURL, setCustomURL] = useState<string>('');
   const [customURLErr, setCustomURLErr] = useState<string>('');
-  const disableContinue = !coverFile || !!customURLErr;
+  const disableContinue = !((coverFile && mainFile) || (!customURLErr && !!customURL));
 
   useEffect(() => {
     props.setAttributes({
@@ -348,13 +382,13 @@ const UploadStep = (props: {
       case MetadataCategory.Audio:
         return 'Upload your audio creation (MP3, FLAC, WAV)';
       case MetadataCategory.Image:
-        return 'Upload your image creation (PNG, JPG, GIF)';
+        return 'Upload your image creation (PNG, JPG, GIF, SVG)';
       case MetadataCategory.Video:
-        return 'Upload your video creation (MP4, MOV, GLB)';
+        return 'Upload your video creation (MP4, MOV, WEBM)';
       case MetadataCategory.VR:
         return 'Upload your AR/VR creation (GLB)';
-      case MetadataCategory.HTML:
-        return 'Upload your HTML File (HTML)';
+      /* case MetadataCategory.HTML:
+        return 'Upload your HTML File (HTML)'; */
       default:
         return 'Please go back and choose a category';
     }
@@ -365,17 +399,23 @@ const UploadStep = (props: {
       case MetadataCategory.Audio:
         return '.mp3,.flac,.wav';
       case MetadataCategory.Image:
-        return '.png,.jpg,.gif';
+        return '.png,.jpg,.gif, .svg';
       case MetadataCategory.Video:
         return '.mp4,.mov,.webm';
       case MetadataCategory.VR:
         return '.glb';
-      case MetadataCategory.HTML:
-        return '.html';
+/*       case MetadataCategory.HTML:
+        return '.html'; */
       default:
         return '';
     }
   };
+
+  const { category } = props.attributes.properties;
+
+  const urlPlaceholder = `http://example.com/path/to/${
+    category === MetadataCategory.Image ? 'image' : 'file'
+  }`;
 
   return (
     <>
@@ -392,9 +432,13 @@ const UploadStep = (props: {
       <Row className="content-action">
         <h3>Upload a cover image (PNG, JPG, GIF, SVG)</h3>
         <Dragger
-          accept=".png,.jpg,.gif,.mp4,.svg"
+          accept=".png,.jpg,.gif,.svg"
           style={{ padding: 20, background: 'rgba(255, 255, 255, 0.08)' }}
           multiple={false}
+          onRemove={() => {
+            setMainFile(undefined);
+            setCoverFile(undefined);
+          }}
           customRequest={info => {
             // dont upload files here, handled outside of the control
             info?.onSuccess?.({}, null as any);
@@ -420,10 +464,7 @@ const UploadStep = (props: {
 
             setCoverFile(file);
             setCoverArtError(undefined);
-          }}
-          onRemove={() => {
-            setCoverFile(undefined);
-          }}
+          }}          
         >
           <div className="ant-upload-drag-icon">
             <h3 style={{ fontWeight: 700 }}>
@@ -492,7 +533,7 @@ const UploadStep = (props: {
       >
         <Input
           disabled={!!mainFile}
-          placeholder="http://example.com/path/to/image"
+          placeholder={urlPlaceholder}
           value={customURL}
           onChange={ev => setCustomURL(ev.target.value)}
           onFocus={() => setCustomURLErr('')}
@@ -519,7 +560,7 @@ const UploadStep = (props: {
           type="primary"
           size="large"
           disabled={disableContinue}
-          onClick={() => {
+          onClick={async () => {
             props.setAttributes({
               ...props.attributes,
               properties: {
@@ -539,14 +580,16 @@ const UploadStep = (props: {
                     } as MetadataFile;
                   }),
               },
-              image: coverFile?.name || '',
+              image: coverFile?.name || customURL || '',
               animation_url:
                 props.attributes.properties?.category !==
                   MetadataCategory.Image && customURL
                   ? customURL
                   : mainFile && mainFile.name,
             });
-            const files = [coverFile, mainFile].filter(f => f) as File[];
+            const url = await fetch(customURL).then(res => res.blob());
+            const files = [coverFile, mainFile, customURL ? new File([url], customURL) : '']
+              .filter(f => f) as File[];
 
             props.setFiles(files);
             props.confirm();
@@ -623,8 +666,11 @@ const InfoStep = (props: {
   );
   const [form] = Form.useForm();
   const [itemTitle, setItemTitle] = useState<String>(props.attributes.name);
+  const [isGlb, setIsGlb] = useState(false);
+  const [showGlb, setShowGlb] = useState(false);
+  const [renderURL, setRenderURL] = useState("");
 
-  const quantityTooltip = "If you don't set a quantity, the stock of your item will be unlimited and will apply to the Open Edition Auction. Instead if you set only 1 Supply your item will apply to the Limited Edition Auction.";
+  const quantityTooltip = "If you do not add a defined quantity, the stock of your item will be unlimited";
 
   useEffect(() => {
     setRoyalties(
@@ -634,6 +680,22 @@ const InfoStep = (props: {
       })),
     );
   }, [creators]);
+
+  useEffect(() => {
+    const animationBlob = props.files[1] as Blob;
+    if (props.files[1]?.name.includes('.glb')) {
+      setIsGlb(true);
+      setRenderURL(URL.createObjectURL(animationBlob));
+    }else {
+      setIsGlb(false);
+    }
+  }, []);
+  
+
+  const onChange = (e) => {
+    setShowGlb(e ? true : false);
+  }
+
   return (
     <>
       <Row className="call-to-action">
@@ -645,16 +707,37 @@ const InfoStep = (props: {
       </Row>
       <Row className="content-action" justify="space-around">
         <Col style={{ maxWidth: "50%" }}>
-          {props.attributes.image && (
-            <ArtCard
-              image={image}
-              animationURL={animation_url}
-              category={props.attributes.properties?.category}
-              name={props.attributes.name}
-              symbol={props.attributes.symbol}
-              small={true}
-            />
-          )}
+          <div style={{ display: "flex", flexFlow: "column", alignItems: "center" }}>
+            {isGlb && (
+              <>
+                <div className="switch-options">
+                  <p>Cover</p>
+                  <Switch defaultChecked checked={showGlb ? true : false} onChange={onChange} style={{ marginBottom: "1rem" }} />
+                  <p>Model</p>
+                </div>
+              </>
+            )}
+            {props.attributes.image && !showGlb && (
+              <ArtCard
+                image={image}
+                animationURL={props.attributes.animation_url}
+                animationObject={props.files[1]}
+                onCreate={true}
+                category={props.attributes.properties?.category}
+                name={props.attributes.name}
+                symbol={props.attributes.symbol}
+                small={true}
+                artView={!(props.files.length > 1)}
+                className="art-create-card"
+              />
+            )}
+            {isGlb && showGlb && (
+              <MeshViewer
+                url={renderURL}
+                style={{ width: 400, height: 400 }}
+              />
+            )}
+          </div>
         </Col>
         <Col className="section" style={{ minWidth: 300, maxWidth: "50%" }}>
           <label className="action-field">
@@ -663,6 +746,7 @@ const InfoStep = (props: {
               autoFocus
               className="input"
               placeholder="Max 50 characters"
+              maxLength={50}
               allowClear
               required
               value={props.attributes.name}
@@ -680,6 +764,7 @@ const InfoStep = (props: {
             <Input
               className="input"
               placeholder="Max 10 characters"
+              maxLength={10}
               allowClear
               value={props.attributes.symbol}
               onChange={info =>
@@ -696,6 +781,7 @@ const InfoStep = (props: {
             <Input.TextArea
               className="input textarea"
               placeholder="Max 500 characters"
+              maxLength={500}
               value={props.attributes.description}
               onChange={info =>
                 props.setAttributes({
@@ -842,7 +928,7 @@ const RoyaltiesSplitter = (props: {
     setRoyalties(filteredRoyalties)
     setCreators(tempCreators);
   }, [props.creators, props.royalties])
-  
+
   return (
     <Col>
       <Row gutter={[0, 24]}>
@@ -1074,9 +1160,6 @@ const RoyaltiesStep = (props: {
           type="primary"
           size="large"
           onClick={() => {
-            console.log("royalties: ", royalties);
-            console.log("fixedCreators: ", fixedCreators);
-            console.log("creators: ", creators);
             // Find all royalties that are invalid (0)
             const zeroedRoyalties = royalties.filter(
               royalty => royalty.amount === 0,
@@ -1101,8 +1184,6 @@ const RoyaltiesStep = (props: {
                     Math.round(100 / royalties.length),
                 }),
             );
-
-            console.log("creatorStructs: ", creatorStructs)
 
             const share = creatorStructs.reduce(
               (acc, el) => (acc += el.share),
@@ -1139,6 +1220,11 @@ const LaunchStep = (props: {
   );
   const files = props.files;
   const metadata = props.attributes;
+
+  const [isGlb, setIsGlb] = useState(false);
+  const [showGlb, setShowGlb] = useState(false);
+  const [renderURL, setRenderURL] = useState("");
+
   useEffect(() => {
     const rentCall = Promise.all([
       props.connection.getMinimumBalanceForRentExemption(MintLayout.span),
@@ -1167,6 +1253,20 @@ const LaunchStep = (props: {
       });
   }, [files, metadata, setCost]);
 
+  useEffect(() => {
+    const animationBlob = props.files[1] as Blob;
+    if (props.files[1]?.name.includes('.glb')) {
+      setIsGlb(true);
+      setRenderURL(URL.createObjectURL(animationBlob));
+    }else {
+      setIsGlb(false);
+    }
+  }, []);
+
+  const onChange = (e) => {
+    setShowGlb(e ? true : false);
+  }
+
   return (
     <>
       <Row className="call-to-action">
@@ -1178,16 +1278,35 @@ const LaunchStep = (props: {
       </Row>
       <Row className="content-action" justify="space-around">
         <Col>
-          {props.attributes.image && (
-            <ArtCard
+          <div style={{ display: "flex", flexFlow: "column", alignItems: "center" }}>
+            {isGlb && (
+              <>
+                <div className="switch-options">
+                  <p>Cover</p>
+                  <Switch defaultChecked checked={showGlb ? true : false} onChange={onChange} style={{ marginBottom: "1rem" }} />
+                  <p>Model</p>
+                </div>
+              </>
+            )}
+            {props.attributes.image && !showGlb && (
+              <ArtCard
               image={image}
-              animationURL={animation_url}
+              animationURL={props.attributes.animation_url}
               category={props.attributes.properties?.category}
               name={props.attributes.name}
               symbol={props.attributes.symbol}
               small={true}
+              artView={props.files[1]?.type === 'unknown'}
+              className="art-create-card"
             />
-          )}
+            )}
+            {isGlb && showGlb && (
+              <MeshViewer
+                url={renderURL}
+                style={{ width: 400, height: 400 }}
+              />
+            )}
+          </div>
         </Col>
         <Col className="section" style={{ minWidth: 300 }}>
           <Statistic
@@ -1198,13 +1317,19 @@ const LaunchStep = (props: {
             suffix="%"
           />
           {cost ? (
-            <AmountLabel title="Cost to Create" amount={cost.toFixed(5)} tokenInfo={useTokenList().tokenMap.get(WRAPPED_SOL_MINT.toString())} />
+            <AmountLabel
+              title="Cost to Create"
+              amount={cost.toFixed(5)}
+              tokenInfo={useTokenList().tokenMap.get(
+                WRAPPED_SOL_MINT.toString(),
+              )}
+            />
           ) : (
             <Spin />
           )}
         </Col>
       </Row>
-      <Row>
+      <Row style={{ marginTop: 20 }}>
         <Button
           type="primary"
           size="large"
@@ -1363,7 +1488,8 @@ const Congrats = (props: {
         <Button
           className="metaplex-button"
           onClick={_ =>
-            history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            // history.push(`/art/${props.nft?.metadataAccount.toString()}`)
+            history.push('/artworks/')
           }
         >
           <span>See it in your collection</span>

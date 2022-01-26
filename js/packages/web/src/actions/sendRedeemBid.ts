@@ -1,9 +1,4 @@
-import {
-  Keypair,
-  Connection,
-  TransactionInstruction,
-  PublicKey,
-} from '@solana/web3.js';
+import { Keypair, Connection, TransactionInstruction } from '@solana/web3.js';
 import {
   ParsedAccount,
   programIds,
@@ -28,7 +23,6 @@ import {
   StringPublicKey,
   toPublicKey,
   WalletSigner,
-  createAssociatedTokenAccountInstruction,
   pubkeyToString,
   WRAPPED_SOL_MINT,
 } from '@oyster/common';
@@ -828,7 +822,7 @@ export async function setupRedeemParticipationInstructions(
         : null,
       myInstructions,
     );
-    instructions.push([...myInstructions, ...cleanupInstructions]);
+    instructions.push([...myInstructions, ...cleanupInstructions.reverse()]);
     signers.push(mySigners);
     const metadata = await getMetadata(mint);
 
@@ -1014,7 +1008,10 @@ async function deprecatedSetupRedeemParticipationInstructions(
         receivingSolAccountOrAta,
       );
       newTokenBalance = 1;
-      instructions.push([...winningPrizeInstructions, ...cleanupInstructions]);
+      instructions.push([
+        ...winningPrizeInstructions,
+        ...cleanupInstructions.reverse(),
+      ]);
     }
   }
 
