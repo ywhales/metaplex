@@ -76,8 +76,8 @@ export const subscribeAccountsChange = (
     ),
   );
 
-  subscriptions.forEach(async subscriptionId => {
-    await connection.removeProgramAccountChangeListener(subscriptionId);
+  subscriptions.forEach(subscriptionId => {
+    connection.removeProgramAccountChangeListener(subscriptionId);
   });
   return () => {
     undefined;

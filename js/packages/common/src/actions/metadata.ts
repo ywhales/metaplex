@@ -572,7 +572,6 @@ export async function createMetadata(
       toPublicKey(metadataProgramId),
     )
   )[0];
-  console.log('Data', data);
   const value = new CreateMetadataArgs({ data, isMutable: true });
   const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
 
