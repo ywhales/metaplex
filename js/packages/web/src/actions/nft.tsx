@@ -153,7 +153,7 @@ export const mintNFT = async (
     description: metadata.description,
     seller_fee_basis_points: metadata.sellerFeeBasisPoints,
     image: s3BucketUrlEnv+'/'+randFilename+'/'+metadata.image,
-    animation_url: metadata.animation_url,
+    animation_url: s3BucketUrlEnv+'/'+randFilename+'/'+metadata.animation_url,
     attributes: metadata.attributes,
     external_url: metadata.external_url,
     properties: {
